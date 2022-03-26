@@ -1,14 +1,21 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CopyPlugin = require("copy-webpack-plugin");
+const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 
 module.exports = {
+  devServer: {
+    contentBase: path.resolve(__dirname, "./src"),
+    historyApiFallback: true,
+  },
   entry: {
-    popup: "./src/popup.jsx",
+    popup: "./src/index-popup.jsx",
+    options: "./src/index-options.jsx",
+    foreground: "./src/index-foreground.jsx",
   },
   output: {
     path: path.resolve(__dirname, "dist"),
-    filename: "[name].js",
+    filename: "[name].bundle.js",
   },
   module: {
     rules: [
@@ -18,9 +25,19 @@ module.exports = {
         use: {
           loader: "babel-loader",
           options: {
-            presets: ["@babel/preset-env", "@babel/preset-react"],
+            presets: [
+              "@babel/preset-env",
+              "@babel/preset-react",
+              {
+                plugins: ["@babel/plugin-proposal-class-properties"],
+              },
+            ],
           },
         },
+      },
+      {
+        test: /\.html$/,
+        use: ["html-loader"],
       },
     ],
   },
@@ -28,9 +45,21 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: "./src/popup.html",
       filename: "popup.html",
+      chunks: ["popup"],
     }),
+    new HtmlWebpackPlugin({
+      template: "./src/options.html",
+      filename: "options.html",
+      chunks: ["options"],
+    }),
+    // new HtmlWebpackPlugin({
+    //   template: "./src/foreground.html",
+    //   filename: "foreground.html",
+    //   chunks: ["foreground"],
+    // }),
     new CopyPlugin({
       patterns: [{ from: "public" }],
     }),
+    new CleanWebpackPlugin(),
   ],
 };

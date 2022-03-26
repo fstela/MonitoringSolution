@@ -1,7 +1,7 @@
 {
   "name": "client",
   "version": "1.0.0",
-  "main": "index-popup.js",
+  "main": "index-popup.jsx",
   "scripts": {
     "dev": "webpack --watch --config webpack.dev.js",
     "build": "webpack --config webpack.prod.js"
