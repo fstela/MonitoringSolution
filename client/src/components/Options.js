@@ -7,7 +7,7 @@ import {
   Navigate,
 } from "react-router-dom";
 
-import Popup from "./Popup";
+import Popup from "./Popup/Popup";
 import Foreground from "./Foreground";
 
 function Options() {

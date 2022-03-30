@@ -9,7 +9,7 @@ module.exports = {
     historyApiFallback: true,
   },
   entry: {
-    popup: "./src/index-popup.jsx",
+    popup: "./src/components/Popup/index-popup.jsx",
     options: "./src/index-options.jsx",
     foreground: "./src/index-foreground.jsx",
   },
@@ -39,11 +39,18 @@ module.exports = {
         test: /\.html$/,
         use: ["html-loader"],
       },
+      {
+        test: /\.css$/i,
+        loader: "css-loader",
+        options: {
+          import: true,
+        },
+      },
     ],
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: "./src/popup.html",
+      template: "./src/components/Popup/popup.html",
       filename: "popup.html",
       chunks: ["popup"],
     }),
