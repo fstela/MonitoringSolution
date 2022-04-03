@@ -166,7 +166,7 @@ const Authentication = () => {
 };
 
 const styles = {
-  auth: {
+  "auth": {
     margin: "auto",
     width: "auto",
     borderRadius: "6px",
@@ -178,29 +178,29 @@ const styles = {
     marginTop: "1rem",
   },
 
-  users: {
+  "users": {
     display: "flex",
     justifyItems: "center",
     marginBottom: "10px",
     cursor: "pointer",
   },
 
-  // users div:hover {
-  //   border: 1px solid #453daf;
-  // }
+  "users div:hover": {
+    border: "1px solid #453daf",
+  },
 
-  logo: {
+  "logo": {
     width: "100%",
     height: "auto",
   },
 
-  selectedUser: {
+  "selectedUser": {
     width: "90%",
     height: "auto",
     border: "1px solid rgb(189, 189, 189)",
   },
 
-  title: {
+  "title": {
     textAlign: "center",
     color: "rgb(0, 0, 0)",
     size: "1rem",
@@ -208,32 +208,26 @@ const styles = {
     fontWeight: "500",
     marginBottom: "2rem",
   },
-  //   form: {
-  //     textAlign: "flex",
-  //   },
-  //   formInput: {
-  //     textAlign: "center",
-  //   },
 
-  control: {
+  "control": {
     marginBottom: "0.5rem",
     marginTop: "2rem",
   },
 
-  accountType: {
+  "accountType": {
     display: "flex",
   },
 
-  accountChosen: {
+  "accountChosen": {
     color: "red",
   },
-  errorDisplay: {
+  "errorDisplay": {
     color: "red",
     margin: "20px",
     fontSize: "13px",
   },
 
-  labels: {
+  "labels": {
     display: "block",
     fontSize: "12px",
     float: "left",
@@ -241,7 +235,7 @@ const styles = {
     marginBottom: "0.5rem",
   },
 
-  email: {
+  "email": {
     font: "inherit",
     backgroundColor: "#ffffff",
     color: "#38015c",
@@ -254,14 +248,14 @@ const styles = {
     float: "center",
   },
 
-  actions: {
+  "actions": {
     marginTop: "1.5rem",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
   },
 
-  actionButton: {
+  "actionButton": {
     cursor: "pointer",
     font: "inherit",
     color: "white",
@@ -271,23 +265,23 @@ const styles = {
     padding: "0.5rem 2.5rem",
   },
 
-  //   .actions button:hover {
-  //     background-color: #6862be;
-  //     border-color: #453daf;
-  //   }
+  "actions button:hover": {
+    backgroundColor: "#6862be",
+    borderColor: "#453daf",
+  },
 
-  //   .actions .toggle {
-  //     margin-top: 1rem;
-  //     background-color: transparent;
-  //     color: #453daf;
-  //     border: none;
-  //     padding: 0.15rem 1.5rem;
-  //   }
+  "actions toggle": {
+    marginTop: "1rem",
+    backgroundColor: "transparent",
+    color: "#453daf",
+    border: "none",
+    padding: "0.15rem 1.5rem",
+  },
 
-  //   .actions .toggle:hover {
-  //     background-color: transparent;
-  //     color: #6862bec9;
-  //   }
+  "actions toggle:hover": {
+    backgroundColor: "transparent",
+    color: "#6862bec9",
+  },
 };
 
 export default Authentication;

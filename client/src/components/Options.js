@@ -13,7 +13,7 @@ import Foreground from "./Foreground";
 function Options() {
   return (
     <div>
-      <h1>Chrome ext options</h1>
+      <h1>Teacher Dashboard</h1>
     </div>
     // <Router>
     //   <div styles={styles.container}>
