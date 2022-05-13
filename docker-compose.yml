@@ -1,0 +1,9 @@
+version: "3"
+services:
+  db:
+    image: mariadb
+    environment:
+      - MYSQL_ROOT_PASSWORD=bubu
+      - MYSQL_DATABASE=licenta
+    ports:
+      - 3306:3306
