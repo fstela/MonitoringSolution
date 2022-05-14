@@ -5,7 +5,6 @@ const Session = db.sessions;
 
 const addTeacher = async (req, res) => {
   let info = {
-    name: req.body.name,
     email: req.body.email,
     password: req.body.password,
   };
