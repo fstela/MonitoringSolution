@@ -17,12 +17,12 @@ const Authentication = () => {
   //   const emailInputRef = useRef();
   //   const authCtx = useContext(AuthContext);
   //   const history = useHistory();
-  const [isLogin, setIsLogin] = useState(true);
+  //const [isLogin, setIsLogin] = useState(true);
   const [isStudent, setIsStudent] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const switchAuthModeHandler = () => {
-    setIsLogin((prevState) => !prevState);
-  };
+  // const switchAuthModeHandler = () => {
+  //   setIsLogin((prevState) => !prevState);
+  // };
   const [authError, setAuthError] = useState(null);
 
   const submitHandler = (event) => {
@@ -84,13 +84,9 @@ const Authentication = () => {
   return (
     <section style={styles.auth}>
       <h1 style={styles.title}>
-        <b>
-          {isLogin
-            ? "Welcome back! Log into your account"
-            : "Hello! Register into our app"}
-        </b>
+        <b>Welcome! Please enter your credentials</b>
       </h1>
-      {!isLogin && (
+      {
         <>
           <div style={styles.accountType}>
             <p style={styles.labels}>
@@ -119,7 +115,7 @@ const Authentication = () => {
             </div>
           </div>
         </>
-      )}
+      }
 
       <form onSubmit={submitHandler}>
         <div>
@@ -131,7 +127,7 @@ const Authentication = () => {
           </div>
           <div style={styles.control}>
             <label htmlFor="password" style={styles.labels}>
-              Password
+              {isStudent ? "Token" : "Password"}
             </label>
             <input
               type="password"
@@ -148,17 +144,17 @@ const Authentication = () => {
         <div style={styles.actions}>
           {!isLoading && (
             <button style={styles.actionButton}>
-              {isLogin ? "Login" : "Create Account"}
+              {!isStudent ? "Create session" : "Start session"}
             </button>
           )}
           {/* {isLoading && <p>Sending request...</p>} */}
-          <button
+          {/* <button
             type="button"
             style={styles.toggle}
             onClick={switchAuthModeHandler}
           >
-            {isLogin ? "Create new account" : "Log in with an existing account"}
-          </button>
+            {!isStudent ? "Create session" : "Start session"}
+          </button>  */}
         </div>
       </form>
     </section>
@@ -166,7 +162,7 @@ const Authentication = () => {
 };
 
 const styles = {
-  "auth": {
+  auth: {
     margin: "auto",
     width: "auto",
     borderRadius: "6px",
@@ -178,7 +174,7 @@ const styles = {
     marginTop: "1rem",
   },
 
-  "users": {
+  users: {
     display: "flex",
     justifyItems: "center",
     marginBottom: "10px",
@@ -189,18 +185,18 @@ const styles = {
     border: "1px solid #453daf",
   },
 
-  "logo": {
+  logo: {
     width: "100%",
     height: "auto",
   },
 
-  "selectedUser": {
+  selectedUser: {
     width: "90%",
     height: "auto",
     border: "1px solid rgb(189, 189, 189)",
   },
 
-  "title": {
+  title: {
     textAlign: "center",
     color: "rgb(0, 0, 0)",
     size: "1rem",
@@ -209,25 +205,25 @@ const styles = {
     marginBottom: "2rem",
   },
 
-  "control": {
+  control: {
     marginBottom: "0.5rem",
     marginTop: "2rem",
   },
 
-  "accountType": {
+  accountType: {
     display: "flex",
   },
 
-  "accountChosen": {
+  accountChosen: {
     color: "red",
   },
-  "errorDisplay": {
+  errorDisplay: {
     color: "red",
     margin: "20px",
     fontSize: "13px",
   },
 
-  "labels": {
+  labels: {
     display: "block",
     fontSize: "12px",
     float: "left",
@@ -235,7 +231,7 @@ const styles = {
     marginBottom: "0.5rem",
   },
 
-  "email": {
+  email: {
     font: "inherit",
     backgroundColor: "#ffffff",
     color: "#38015c",
@@ -248,14 +244,14 @@ const styles = {
     float: "center",
   },
 
-  "actions": {
+  actions: {
     marginTop: "1.5rem",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
   },
 
-  "actionButton": {
+  actionButton: {
     cursor: "pointer",
     font: "inherit",
     color: "white",

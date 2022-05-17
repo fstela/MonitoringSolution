@@ -1,8 +1,0 @@
-// Imports
-import ___CSS_LOADER_API_NO_SOURCEMAP_IMPORT___ from "../../../../node_modules/css-loader/dist/runtime/noSourceMaps.js";
-import ___CSS_LOADER_API_IMPORT___ from "../../../../node_modules/css-loader/dist/runtime/api.js";
-var ___CSS_LOADER_EXPORT___ = ___CSS_LOADER_API_IMPORT___(___CSS_LOADER_API_NO_SOURCEMAP_IMPORT___);
-// Module
-___CSS_LOADER_EXPORT___.push([module.id, ".popup {\n  width: 700px;\n  height: 800px;\n  background-color: #b13131;\n}\n.authForm {\n  display: inline-block;\n  /* min-width: 750px;\n  min-height: 800px; */\n}\n", ""]);
-// Exports
-export default ___CSS_LOADER_EXPORT___;
