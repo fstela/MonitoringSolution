@@ -118,14 +118,22 @@ const Authentication = () => {
       }
 
       <form onSubmit={submitHandler}>
-        <div>
-          <div style={styles.control}>
-            <label htmlFor="email" style={styles.labels}>
-              Email address
-            </label>
-            <input type="email" id="email" style={styles.email} />
-          </div>
-          <div style={styles.control}>
+        {!isStudent ? (
+          <>
+            <div>
+              <div style={styles.control}>
+                <label htmlFor="email" style={styles.labels}>
+                  Token
+                </label>
+                <input type="email" id="email" style={styles.email} />
+              </div>
+              <div style={styles.actions}>
+                <button style={styles.actionButton}>Connect</button>
+              </div>
+              <div style={styles.actions}>
+                <p> —  OR  — </p>
+              </div>
+              {/* <div style={styles.control}>
             <label htmlFor="password" style={styles.labels}>
               {isStudent ? "Token" : "Password"}
             </label>
@@ -136,26 +144,27 @@ const Authentication = () => {
               style={styles.email}
               // ref={passwordInputRef}
             />
-          </div>
-        </div>
-        <div style={styles.error}>
-          {authError && <p style={styles.errorDisplay}>{authError}</p>}
-        </div>
-        <div style={styles.actions}>
-          {!isLoading && (
-            <button style={styles.actionButton}>
-              {!isStudent ? "Create session" : "Start session"}
-            </button>
-          )}
-          {/* {isLoading && <p>Sending request...</p>} */}
-          {/* <button
+          </div> */}
+            </div>
+            <div style={styles.error}>
+              {authError && <p style={styles.errorDisplay}>{authError}</p>}
+            </div>
+            <div style={styles.actions}>
+              <button style={styles.actionButtonCreate}>CREATE SESSION</button>
+
+              {/* {isLoading && <p>Sending request...</p>} */}
+              {/* <button
             type="button"
             style={styles.toggle}
             onClick={switchAuthModeHandler}
           >
             {!isStudent ? "Create session" : "Start session"}
           </button>  */}
-        </div>
+            </div>
+          </>
+        ) : (
+          <></>
+        )}
       </form>
     </section>
   );
@@ -194,6 +203,13 @@ const styles = {
     width: "90%",
     height: "auto",
     border: "1px solid rgb(189, 189, 189)",
+  },
+
+  buttonSeparator: {
+    marginTop: "1rem",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
   },
 
   title: {
@@ -245,7 +261,7 @@ const styles = {
   },
 
   actions: {
-    marginTop: "1.5rem",
+    marginTop: "1rem",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
@@ -259,6 +275,20 @@ const styles = {
     border: "1px solid #0b00a5",
     borderRadius: "4px",
     padding: "0.5rem 2.5rem",
+  },
+
+  actionButtonCreate: {
+    cursor: "pointer",
+    font: "inherit",
+    fontWeight: "bold",
+    color: "#453daf",
+    backgroundColor: "#e8ecfc",
+    border: "1px solid rgba(206, 203, 203, 0.411)",
+    borderRadius: "4px",
+    padding: "0.5rem 2.5rem",
+    marginTop: "1rem",
+    width: "100%",
+    float: "center",
   },
 
   "actions button:hover": {
