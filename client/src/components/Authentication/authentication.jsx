@@ -142,7 +142,22 @@ const Authentication = () => {
             </div>
           </>
         ) : (
-          <></>
+          <>
+            <div>
+              <div style={styles.control}>
+                <label htmlFor="email" style={styles.labels}>
+                  Token
+                </label>
+                <input type="email" id="email" style={styles.email} />
+              </div>
+              <div style={styles.actions}>
+                <button style={styles.actionButtonStart}>Start session</button>
+              </div>
+            </div>
+            <div style={styles.error}>
+              {authError && <p style={styles.errorDisplay}>{authError}</p>}
+            </div>
+          </>
         )}
       </form>
     </section>
@@ -277,7 +292,19 @@ const styles = {
     padding: "0.5rem 2.5rem",
     width: "100%",
     float: "center",
-    //marginLeft: "0.5rem", 
+    //marginLeft: "0.5rem",
+  },
+
+  actionButtonStart: {
+    cursor: "pointer",
+    font: "inherit",
+    //fontWeight: "bold",
+    color: "white",
+    backgroundColor: "#453daf",
+    border: "1px solid #0b00a5",
+    borderRadius: "4px",
+    padding: "0.5rem 2.5rem",
+    marginTop: "0.7rem",
   },
 
   "actions button:hover": {
