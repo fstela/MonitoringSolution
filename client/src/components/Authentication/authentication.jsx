@@ -131,35 +131,14 @@ const Authentication = () => {
                 <button style={styles.actionButton}>Connect</button>
               </div>
               <div style={styles.actions}>
-                <p> —  OR  — </p>
+                <p> — OR — </p>
               </div>
-              {/* <div style={styles.control}>
-            <label htmlFor="password" style={styles.labels}>
-              {isStudent ? "Token" : "Password"}
-            </label>
-            <input
-              type="password"
-              id="password"
-              required
-              style={styles.email}
-              // ref={passwordInputRef}
-            />
-          </div> */}
             </div>
             <div style={styles.error}>
               {authError && <p style={styles.errorDisplay}>{authError}</p>}
             </div>
             <div style={styles.actions}>
-              <button style={styles.actionButtonCreate}>CREATE SESSION</button>
-
-              {/* {isLoading && <p>Sending request...</p>} */}
-              {/* <button
-            type="button"
-            style={styles.toggle}
-            onClick={switchAuthModeHandler}
-          >
-            {!isStudent ? "Create session" : "Start session"}
-          </button>  */}
+              <button style={styles.actionButtonCreate}>Create session</button>
             </div>
           </>
         ) : (
@@ -247,6 +226,15 @@ const styles = {
     marginBottom: "0.5rem",
   },
 
+  labelToken: {
+    display: "block",
+    fontSize: "12px",
+    float: "left",
+    fontWeight: "bold",
+    marginBottom: "0.5rem",
+    color: "#6c6ca5",
+  },
+
   email: {
     font: "inherit",
     backgroundColor: "#ffffff",
@@ -270,9 +258,10 @@ const styles = {
   actionButton: {
     cursor: "pointer",
     font: "inherit",
-    color: "white",
-    backgroundColor: "#453daf",
-    border: "1px solid #0b00a5",
+    color: "#6c6ca5",
+    fontWeight: "bold",
+    backgroundColor: "#e8ecfc",
+    border: "1px solid rgba(206, 203, 203, 0.411)",
     borderRadius: "4px",
     padding: "0.5rem 2.5rem",
   },
@@ -281,14 +270,14 @@ const styles = {
     cursor: "pointer",
     font: "inherit",
     fontWeight: "bold",
-    color: "#453daf",
-    backgroundColor: "#e8ecfc",
-    border: "1px solid rgba(206, 203, 203, 0.411)",
+    color: "white",
+    backgroundColor: "#453daf",
+    border: "1px solid #0b00a5",
     borderRadius: "4px",
     padding: "0.5rem 2.5rem",
-    marginTop: "1rem",
     width: "100%",
     float: "center",
+    //marginLeft: "0.5rem", 
   },
 
   "actions button:hover": {
