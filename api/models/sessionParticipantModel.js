@@ -1,15 +1,15 @@
 module.exports = (sequelize, DataTypes) => {
-  const User = sequelize.define("user", {
-    name: {
+  const SessionParticipant = sequelize.define("sessionParticipant", {
+    studentToken: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    status: {
+      type: DataTypes.STRING,
     },
     email: {
       type: DataTypes.STRING,
     },
-    password: {
-      type: DataTypes.STRING,
-    },
   });
-  return User;
+  return SessionParticipant;
 };

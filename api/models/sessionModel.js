@@ -13,7 +13,7 @@ module.exports = (sequelize, DataTypes) => {
     duration: {
       type: DataTypes.INTEGER,
     },
-    token: {
+    teacherToken: {
       type: DataTypes.STRING,
     },
   });

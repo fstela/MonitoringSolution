@@ -30,29 +30,19 @@ db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
 db.sessions = require("./sessionModel.js")(sequelize, DataTypes);
-db.users = require("./userModel.js")(sequelize, DataTypes);
-db.teachers = require("./teacherModel.js")(sequelize, DataTypes);
+db.sessionParticipants = require("./sessionParticipantModel.js")(sequelize, DataTypes);
 
 db.sequelize.sync({ force: false }).then(() => {
   console.log("resync done");
 });
 
-db.teachers.hasMany(db.sessions, {
-  foreignKey: "teacher_id",
-  as: "session",
-});
 
-db.sessions.belongsTo(db.teachers, {
-  foreignKey: "teacher_id",
-  as: "teacher",
-});
-
-db.sessions.hasMany(db.users, {
+db.sessions.hasMany(db.sessionParticipants, {
   foreignKey: "session_id",
-  as: "user",
+  as: "sessionParticipant",
 });
 
-db.users.belongsTo(db.sessions, {
+db.sessionParticipants.belongsTo(db.sessions, {
   foreignKey: "session_id",
   as: "session",
 });

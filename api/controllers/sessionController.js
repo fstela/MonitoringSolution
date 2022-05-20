@@ -1,7 +1,20 @@
 const db = require("../models");
 
 const Session = db.sessions;
-const User = db.users;
+const SessionParticipant = db.sessionParticipants;
+
+const addSession = async (req, res) => {
+  let info = {
+    title: req.body.title,
+    startTime: req.body.startTime,
+    stopTime: req.body.stopTime,
+    duration: req.body.duration,
+    teacherToken: req.body.teacherToken,
+  };
+  const session = await Session.create(info);
+  console.log(session);
+  res.status(200).send(session);
+};
 
 const getAllSessions = async (req, res) => {
   let sessions = await Session.findAll({});
@@ -26,13 +39,13 @@ const deleteSession = async (req, res) => {
   res.status(200).send("session was deleted");
 };
 
-const getSessionUsers = async (req, res) => {
+const getSessionParticipants = async (req, res) => {
   let id = req.params.id;
   const data = await Session.findAll({
     include: [
       {
-        model: User,
-        as: "user",
+        model: SessionParticipant,
+        as: "sessionParticipant",
       },
     ],
     where: { id: id },
@@ -40,25 +53,24 @@ const getSessionUsers = async (req, res) => {
   res.status(200).send(data);
 };
 
-const addSessionUser = async (req, res) => {
+const addSessionParticipant = async (req, res) => {
   let info = {
-    name: req.body.name,
+    studentToken: req.body.studentToken,
     email: req.body.email,
-    password: req.body.password,
+    status: req.body.status,
     session_id: req.params.id,
   };
 
-  const user = await User.create(info);
-  res.status(200).send(user);
+  const sessionParticipant = await SessionParticipant.create(info);
+  res.status(200).send(sessionParticipant);
 };
 
-
-
 module.exports = {
+  addSession,
   getAllSessions,
   getSession,
   updateSession,
   deleteSession,
-  getSessionUsers,
-  addSessionUser,
+  getSessionParticipants,
+  addSessionParticipant,
 };
