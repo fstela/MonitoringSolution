@@ -2,20 +2,19 @@ module.exports = (sequelize, DataTypes) => {
   const SessionParticipantMonitoring = sequelize.define(
     "sessionParticipantMonitoring",
     {
-      title: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      startTime: {
+      videoMonitoring: {
         type: DataTypes.STRING,
       },
-      stopTime: {
+      keyLogging: {
         type: DataTypes.STRING,
       },
-      duration: {
-        type: DataTypes.INTEGER,
+      audioMonitoring: {
+        type: DataTypes.STRING,
       },
-      teacherToken: {
+      browserMonitoring: {
+        type: DataTypes.STRING,
+      },
+      date: {
         type: DataTypes.STRING,
       },
     }

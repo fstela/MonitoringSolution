@@ -1,6 +1,6 @@
 const sessionController = require("../controllers/sessionController");
 const sessionParticipantController = require("../controllers/sessionParticipantController");
-
+const sessionParticipantMonitoringController = require("../controllers/sessionParticipantMonitoringController");
 const router = require("express").Router();
 
 router.post("/sessions", sessionController.addSession);
@@ -29,5 +29,12 @@ router.get(
   "/participants/:id",
   sessionParticipantController.getSessionParticipant
 );
-
+router.post(
+  "/participants/:id/monitoring",
+  sessionParticipantController.addSessionParticipantMonitoring
+);
+router.get(
+  "/participants/:id/monitoring",
+  sessionParticipantMonitoringController.getParticipantMonitoring
+)
 module.exports = router;
