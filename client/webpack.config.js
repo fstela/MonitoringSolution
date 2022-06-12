@@ -11,7 +11,7 @@ module.exports = {
   entry: {
     popup: "./src/screens/Popup/index.jsx",
     options: "./src/screens/Options/index.jsx",
-    bacgkround: "./src/background/background.js"
+    background: "./src/background/inject.js"
   },
   output: {
     path: path.resolve(__dirname, "dist"),

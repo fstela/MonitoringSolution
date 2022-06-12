@@ -1,16 +1,11 @@
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-  if (changeInfo.status === "complete" && tab.url.includes("http")) {
-    chrome.tabs.executeScript(
-      tabId,
-      { file: "./inject.js" },
+  console.log(tabId, changeInfo, tab);
+  if (changeInfo.status === "complete" && tab.url.includes("https")) {
+    console.log("acum");
+    chrome.scripting.executeScript(
+      { files: ["./background.bundle.js"] },
       function () {
-        chrome.tabs.executeScript(
-          tabId,
-          { file: "./foreground.bundle.js" },
-          function () {
-            console.log("INJECTED");
-          }
-        );
+        console.log("INJECTED");
       }
     );
   }
