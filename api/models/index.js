@@ -30,12 +30,16 @@ db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
 db.sessions = require("./sessionModel.js")(sequelize, DataTypes);
-db.sessionParticipants = require("./sessionParticipantModel.js")(sequelize, DataTypes);
+db.sessionParticipants = require("./sessionParticipantModel.js")(
+  sequelize,
+  DataTypes
+);
+db.sessionParticipantMonitoring =
+  require("./sessionParticipantMonitoringModel.js")(sequelize, DataTypes);
 
 db.sequelize.sync({ force: false }).then(() => {
   console.log("resync done");
 });
-
 
 db.sessions.hasMany(db.sessionParticipants, {
   foreignKey: "session_id",
@@ -45,6 +49,16 @@ db.sessions.hasMany(db.sessionParticipants, {
 db.sessionParticipants.belongsTo(db.sessions, {
   foreignKey: "session_id",
   as: "session",
+});
+
+db.sessionParticipants.hasMany(db.sessionParticipantMonitoring, {
+  foreignKey: "sessionParticipant_id",
+  as: "sessionParticipantMonitoring",
+});
+
+db.sessionParticipantMonitoring.belongsTo(db.sessionParticipants, {
+  foreignKey: "sessionParticipant_id",
+  as: "sessionParticipant",
 });
 
 module.exports = db;
