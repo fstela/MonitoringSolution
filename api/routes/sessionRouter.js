@@ -4,35 +4,37 @@ const sessionParticipantMonitoringController = require("../controllers/sessionPa
 const router = require("express").Router();
 
 router.post("/sessions", sessionController.addSession);
-router.get("/sessions", sessionController.getAllSessions);
-router.get("/sessions/:id", sessionController.getSession);
-router.put("/sessions/:id", sessionController.updateSession);
-router.delete("/sessions/:id", sessionController.deleteSession);
+// router.get("/sessions", sessionController.getAllSessions); // ?
+router.get("/sessions", sessionController.getSession);
+router.put("/sessions", sessionController.updateSession);
+router.delete("/sessions", sessionController.deleteSession);
 
 router.post(
-  "/sessions/:id/participants",
+  "/sessions/participants",
   sessionController.addSessionParticipant
 );
 router.get(
-  "/sessions/:id/participants",
+  "/sessions/participants",
   sessionController.getSessionParticipants
 );
-router.put(
-  "/participants/:id",
-  sessionParticipantController.updateSessionParticipant
-);
+// router.put(
+//   "/participants/:id",
+//   sessionParticipantController.updateSessionParticipant
+// );
 router.delete(
   "/participants/:id",
   sessionParticipantController.deleteSessionParticipant
 );
-router.get(
-  "/participants/:id",
-  sessionParticipantController.getSessionParticipant
-);
-router.post(
+// router.get(
+//   "/participants/:id",
+//   sessionParticipantController.getSessionParticipant
+// );
+
+router.patch(
   "/participants/:id/monitoring",
   sessionParticipantController.addSessionParticipantMonitoring
 );
+
 router.get(
   "/participants/:id/monitoring",
   sessionParticipantMonitoringController.getParticipantMonitoring

@@ -3,6 +3,8 @@ const db = require("../models");
 const SessionParticipant = db.sessionParticipants;
 const SessionParticipantMonitoring = db.sessionParticipantMonitoring;
 
+// doar daca token-ul din header  === teacherToken-ul sessiuni
+
 const getSessionParticipant = async (req, res) => {
   let id = req.params.id;
   let sessionParticipant = await SessionParticipant.findOne({
@@ -25,6 +27,8 @@ const deleteSessionParticipant = async (req, res) => {
   res.status(200).send("Participant was deleted");
 };
 
+
+// trb sa se faca cand se adauga participantii
 const addSessionParticipantMonitoring = async (req, res) => {
   let info = {
     videoMonitoring: req.body.videoMonitoring,
