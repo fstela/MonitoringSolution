@@ -1,16 +1,7 @@
 import React from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Link,
-  Navigate,
-} from "react-router-dom";
 
-import Popup from "./Popup/Popup";
-import Foreground from "./Foreground";
 
-function Options() {
+const Options = ()  => {
   return (
     <div>
       <h1>Teacher Dashboard</h1>

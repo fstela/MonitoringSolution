@@ -53,10 +53,10 @@ const Authentication = () => {
           <>
             <div>
               <div style={styles.control}>
-                <label htmlFor="email" style={styles.labels}>
+                <label htmlFor="token" style={styles.labels}>
                   Token
                 </label>
-                <input type="email" id="email" style={styles.email} />
+                <input type="text" id="token" style={styles.token} />
               </div>
               <div style={styles.actions}>
                 <button style={styles.actionButton}>Connect</button>
@@ -76,10 +76,10 @@ const Authentication = () => {
           <>
             <div>
               <div style={styles.control}>
-                <label htmlFor="email" style={styles.labels}>
+                <label htmlFor="token" style={styles.labels}>
                   Token
                 </label>
-                <input type="email" id="email" style={styles.email} />
+                <input type="text" id="token" style={styles.token} />
               </div>
               <div style={styles.actions}>
                 <button style={styles.actionButtonStart}>Start session</button>
@@ -181,7 +181,7 @@ const styles = {
     color: "#6c6ca5",
   },
 
-  email: {
+  token: {
     font: "inherit",
     backgroundColor: "#ffffff",
     color: "#38015c",
