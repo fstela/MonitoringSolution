@@ -69,7 +69,7 @@ const Authentication = () => {
               {authError && <p style={styles.errorDisplay}>{authError}</p>}
             </div>
             <div style={styles.actions}>
-              <button style={styles.actionButtonCreate}>Create session</button>
+              <button style={styles.actionButtonCreate} onClick={() => chrome.runtime.openOptionsPage()}>Create session</button>
             </div>
           </>
         ) : (

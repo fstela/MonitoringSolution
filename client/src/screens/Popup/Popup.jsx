@@ -1,5 +1,5 @@
 import React from "react";
-import Authentication from "../Authentication/authentication.jsx";
+import Authentication from "../../components/Authentication/authentication.jsx";
 import "./popup.css";
 
 const Popup = () => {
