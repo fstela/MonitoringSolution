@@ -1,42 +1,17 @@
 import React from "react";
+import { BrowserRouter, MemoryRouter, Route, Router, Routes } from "react-router-dom";
+import Dashboard from "../../components/Dashboard/index.jsx";
+import Session from "../../components/Dashboard/Session/index.jsx";
 
 
 const Options = ()  => {
   return (
-    <div>
-      <h1>Teacher Dashboard</h1>
-    </div>
-    // <Router>
-    //   <div styles={styles.container}>
-    //     <div>
-    //       <h1>Chrome ext options</h1>
-    //       <nav>
-    //         <ul>
-    //           <li>
-    //             <Link to="./">Options</Link>
-    //           </li>
-    //           <li>
-    //             <Link to="/popup">Popup</Link>
-    //           </li>
-    //           <li>
-    //             <Link to="/foreground">Foreground</Link>
-    //           </li>
-    //         </ul>
-    //       </nav>
-    //     </div>
-    //     <Routes>
-    //       <Route exact path="/popup">
-    //         <Popup />
-    //       </Route>
-    //       <Route exact path="/foreground">
-    //         <Foreground />
-    //       </Route>
-    //       <Route exact path="/">
-    //         <Navigate to="/options.html" />
-    //       </Route>
-    //     </Routes>
-    //   </div>
-    // </Router>
+    <MemoryRouter>
+      <Routes >
+        <Route path="" element={<Dashboard />} />
+        <Route path="/session" element={<Session/>} />
+      </Routes>
+    </MemoryRouter>
   );
 }
 const styles = {
