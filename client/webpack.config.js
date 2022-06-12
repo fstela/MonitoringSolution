@@ -9,9 +9,9 @@ module.exports = {
     historyApiFallback: true,
   },
   entry: {
-    popup: "./src/components/Popup/index-popup.jsx",
-    options: "./src/index-options.jsx",
-    foreground: "./src/index-foreground.jsx",
+    popup: "./src/screens/Popup/index.jsx",
+    options: "./src/screens/Options/index.jsx",
+    bacgkround: "./src/background/background.js"
   },
   output: {
     path: path.resolve(__dirname, "dist"),
@@ -50,20 +50,15 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: "./src/components/Popup/popup.html",
+      template: "./src/screens/Popup/popup.html",
       filename: "popup.html",
       chunks: ["popup"],
     }),
     new HtmlWebpackPlugin({
-      template: "./src/options.html",
+      template: "./src/screens/Options/options.html",
       filename: "options.html",
       chunks: ["options"],
     }),
-    // new HtmlWebpackPlugin({
-    //   template: "./src/foreground.html",
-    //   filename: "foreground.html",
-    //   chunks: ["foreground"],
-    // }),
     new CopyPlugin({
       patterns: [{ from: "public" }],
     }),
