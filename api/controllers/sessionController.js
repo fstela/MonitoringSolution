@@ -1,5 +1,4 @@
-import {v4 as uuidv4} from "uuid";
-import EmailService from "../service/emailService";
+const { v4: uuidv4 } = require('uuid');
 const db = require("../models");
 
 const Session = db.sessions;
@@ -12,7 +11,7 @@ const addSession = async (req, res) => {
     startTime: req.body.startTime,
     stopTime: req.body.stopTime, // timestamp sau format standar de data
     duration: req.body.duration,
-    teacherToken: uuidv4()
+    teacherToken: uuidv4() // trb sa-l faci tu cu uuid
   };
   // foloseste date fns
   const session = await Session.create(info);
@@ -51,7 +50,7 @@ const getSessionParticipants = async (req, res) => {
   // headerul Authorization din request. 
   // valoarea trebuie sa nu fie null si sa fie egala cu teachertoken din 
   // session-ul cerut
-  let id = req.params.id;
+  let token = req.headers['Authorization'];
   const data = await Session.findAll({
     include: [
       {
@@ -59,7 +58,7 @@ const getSessionParticipants = async (req, res) => {
         as: "sessionParticipant",
       },
     ],
-    where: { id: id },
+    where: { teacherToken: token },
   });
   res.status(200).send(data);
 };
@@ -127,7 +126,6 @@ const sendEmails = (req, res) => {
 
 module.exports = {
   addSession,
-  getAllSessions,
   getSession,
   updateSession,
   deleteSession,
