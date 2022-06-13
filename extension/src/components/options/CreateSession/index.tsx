@@ -1,48 +1,190 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import DateTimePicker from "react-datetime-picker";
+import Joi from "joi";
+import OptionsContext from "@src/pages/options/context";
+import { getUnixTime } from "date-fns";
+import SessionService from "@src/api/SessionService";
+import { createClient } from "@src/api/ApiService";
+import toast, { useToaster } from "react-hot-toast";
+import { VIEW_SESSION_MONITORING } from "@src/pages/options/views";
+import { useNavigate } from "react-router-dom";
+
+const CreateSessionSchema = Joi.object({
+  title: Joi.string().min(2).max(100).required(),
+  duration: Joi.number().integer().min(5).max(200).required(),
+  startDate: Joi.date().greater("now").less(Joi.ref("endDate")).required(),
+  endDate: Joi.date().greater("now").required(),
+});
 
 const CreateSession: React.FC = () => {
+  // we don't need to be authenticated
+  const service = new SessionService(createClient(""));
+
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
+  const [duration, setDuration] = useState(0);
+  const [title, setTitle] = useState("");
+  const [errorMessage, setErrorMessage] = useState<undefined | string>(
+    undefined
+  );
+  const [inProgress, setInProgress] = useState(false);
+  const [sessionToken, setSessionToken] = useState<undefined | string>(
+    undefined
+  );
+
+  const createSession = () => {
+    setInProgress(true);
+    setErrorMessage(undefined);
+    const validationResult = CreateSessionSchema.validate({
+      duration,
+      title,
+      endDate,
+      startDate,
+    });
+    if (validationResult.error) {
+      setErrorMessage(validationResult.error.message);
+      setInProgress(false);
+    }
+
+    service
+      .createSession({
+        duration,
+        title,
+        endTime: getUnixTime(endDate),
+        startTime: getUnixTime(startDate),
+      })
+      .then(
+        (response) => {
+          setSessionToken(response.data.teacherToken);
+        },
+        (err) => {
+          console.log(err);
+          setErrorMessage("Error from server");
+          setInProgress(false);
+        }
+      )
+      .catch((err) => {
+        console.log(err);
+        setErrorMessage("Error from server");
+        setInProgress(false);
+      });
+  };
+
   return (
     <div className="mt-10">
-      <h1 className="font-bold text-lg mb-5">Create new session</h1>
-      <div className="grid gird-cols-1 gap-3">
-        <div className="form-control w-full">
-          <label className="label">
-            <span>Session title</span>
-          </label>
+      {sessionToken && <SuccessMessage token={sessionToken} />}
+      {!sessionToken && (
+        <>
+          <h1 className="font-bold text-lg mb-5">Create new session</h1>
+          <div className="grid gird-cols-1 gap-3">
+            <div className="form-control w-full">
+              <label className="label">
+                <span>Session title</span>
+              </label>
+              <input
+                type="text"
+                placeholder="eg. Math Exam"
+                className="input input-bordered w-full max-w-md"
+                onChange={(e) => setTitle(e.target.value)}
+              />
+            </div>
+            <div className="form-control w-full">
+              <label className="label">
+                <span>Duration (in minutes)</span>
+              </label>
+              <input
+                type="number"
+                placeholder="30"
+                className="input input-bordered w-full max-w-md"
+                onChange={(e) => setDuration(Number.parseInt(e.target.value))}
+              />
+            </div>
+
+            <div className="form-control w-full max-w-md">
+              <label className="label">
+                <span>Start time</span>
+              </label>
+              <DateTimePicker
+                value={startDate}
+                onChange={setStartDate}
+                className="app-datapicker"
+                disableClock={true}
+              />
+            </div>
+            <div className="form-control w-full max-w-md">
+              <label className="label">
+                <span>End time</span>
+              </label>
+              <DateTimePicker
+                value={endDate}
+                onChange={setEndDate}
+                className="app-datapicker"
+                disableClock={true}
+              />
+            </div>
+            <button
+              className={`btn btn-primary btn-active max-w-md mt-5 ${
+                inProgress && "loading"
+              }`}
+              onClick={createSession}
+              disabled={inProgress}
+            >
+              Create
+            </button>
+            {errorMessage && (
+              <p className="text-red-500">Error: {errorMessage}</p>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+const SuccessMessage: React.FC<{ token: string }> = ({ token }) => {
+  const copyTokenToClipboard = () => {
+    navigator.clipboard.writeText(token);
+    toast.success("Token copied to clipboard");
+  };
+
+  const context = useContext(OptionsContext);
+
+  const navigate = useNavigate();
+  const navigateToSessionPage = () => {
+    context.setToken(token);
+    chrome.storage.local.set({ view: VIEW_SESSION_MONITORING, token }).then(() => {
+      navigate("/");
+    })
+  };
+
+  return (
+    <div>
+      <h1 className="font-bold text-lg mb-3">Session created with success!</h1>
+      <p>
+        Lorem ipsum dolor, sit amet consectetur adipisicing elit. Illo, quasi
+        facere? Labore quaerat beatae ut vero, accusantium ullam aspernatur odio
+        cum officiis inventore error ad architecto iure, aliquam veniam
+        voluptates!
+      </p>
+      <div className="form-control mt-5 w-full">
+        <div className="input-group w-full">
           <input
             type="text"
-            placeholder="eg. Math Exam"
-            className="input input-bordered w-full max-w-md"
+            value={token}
+            disabled={true}
+            className="input input-bordered max-w-lg w-full"
           />
+          <button className="btn btn-active" onClick={copyTokenToClipboard}>
+            Copy!
+          </button>
         </div>
-        <div className="form-control w-full">
-          <label className="label">
-            <span>Duration (in minutes)</span>
-          </label>
-          <input
-            type="number"
-            placeholder="30"
-            className="input input-bordered w-full max-w-md"
-          />
-        </div>
-
-        <div className="form-control w-full max-w-md">
-          <label className="label">
-            <span>Start time</span>
-          </label>
-          <DateTimePicker value={startDate} onChange={setStartDate} className="app-datapicker" disableClock={true}/>
-        </div>
-        <div className="form-control w-full max-w-md">
-          <label className="label">
-            <span>End time</span>
-          </label>
-          <DateTimePicker value={endDate} onChange={setEndDate} className="app-datapicker" disableClock={true}/>
-        </div>
-        <button className="btn btn-primary btn-active max-w-md mt-5">Create</button>
       </div>
+      <button
+        className="btn btn-active btn-primary mt-5"
+        onClick={navigateToSessionPage}
+      >
+        Access session page
+      </button>
     </div>
   );
 };
