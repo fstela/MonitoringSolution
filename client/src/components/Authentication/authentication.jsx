@@ -1,4 +1,5 @@
 import React, { useState, useRef, useContext } from "react";
+import { MODE_CREATE_SESSION, MODE_VIEW_SESSION } from "../../static";
 import "./authentication.css";
 
 const Authentication = () => {
@@ -11,6 +12,15 @@ const Authentication = () => {
     setAuthError(null);
     setIsLoading(true);
   };
+
+  const handleCreateSession = ( ) => {
+    chrome.storage.local.set({mode: MODE_CREATE_SESSION})
+    chrome.runtime.openOptionsPage()
+  }
+  const handleConnect = () => {
+    chrome.storage.local.set({mode: MODE_VIEW_SESSION})
+    chrome.runtime.openOptionsPage()
+  }
 
   return (
     <section style={styles.auth}>
@@ -59,7 +69,7 @@ const Authentication = () => {
                 <input type="text" id="token" style={styles.token} />
               </div>
               <div style={styles.actions}>
-                <button style={styles.actionButton}>Connect</button>
+                <button style={styles.actionButton} onClick={handleConnect}>Connect</button>
               </div>
               <div style={styles.actions}>
                 <p> — OR — </p>
@@ -69,7 +79,7 @@ const Authentication = () => {
               {authError && <p style={styles.errorDisplay}>{authError}</p>}
             </div>
             <div style={styles.actions}>
-              <button style={styles.actionButtonCreate} onClick={() => chrome.runtime.openOptionsPage()}>Create session</button>
+              <button style={styles.actionButtonCreate} onClick={handleCreateSession}>Create session</button>
             </div>
           </>
         ) : (

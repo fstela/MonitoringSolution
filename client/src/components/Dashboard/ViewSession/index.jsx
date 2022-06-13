@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 const Session = () => {
-    return <><Link to="/">main</Link></>
+    return <>view session</>
 }
 
 export default Session;
