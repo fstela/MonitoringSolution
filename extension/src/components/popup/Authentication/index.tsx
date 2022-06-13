@@ -49,13 +49,16 @@ const Authentication = () => {
 };
 
 const TeacherForm: React.FC = () => {
+  const [token, setToken] = useState<string|undefined>(undefined);
   const handleCreateSession = () => {
     chrome.storage.local.set({ view: VIEW_CREATE_SESSION });
     chrome.runtime.openOptionsPage();
   };
   const handleConnect = () => {
-    chrome.storage.local.set({ view: VIEW_SESSION_MONITORING });
+    if(token) {
+    chrome.storage.local.set({ view: VIEW_SESSION_MONITORING, token: token });
     chrome.runtime.openOptionsPage();
+    }
   };
   return (
     <>
@@ -66,6 +69,7 @@ const TeacherForm: React.FC = () => {
               type="text"
               placeholder="XXXXXX-XXXXX-XXXXX-XXXXX"
               className="input input-bordered w-full mb-2"
+              onChange={e => setToken(e.target.value)}
             />
             <button
               className="btn btn-active btn-primary"
