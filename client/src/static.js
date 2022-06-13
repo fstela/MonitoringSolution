@@ -1,2 +1,0 @@
-export const MODE_CREATE_SESSION = "CREATE_SESSION";
-export const MODE_VIEW_SESSION = "VIEW_SESSION";

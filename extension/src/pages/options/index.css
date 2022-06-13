@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.app-datapicker .react-datetime-picker__wrapper {
+    @apply p-3;
+    @apply rounded-lg;
+    @apply border-opacity-20;
+    border: 1px solid hsl(0deg 0% 0% / 20%)!important;
+}
