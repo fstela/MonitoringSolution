@@ -5,6 +5,9 @@ class EmailService {
     host: "localhost",
     port: 1025,
     secure: false,
+    tls: {
+      rejectUnauthorized: false
+  }
   });
   async sendEmails(emails) {
     for (let i = 0; i < emails.length; i++) {
@@ -18,4 +21,4 @@ class EmailService {
   }
 }
 
-export default new EmailService();
+module.exports = new EmailService();

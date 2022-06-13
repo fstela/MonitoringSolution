@@ -1,6 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const db = require("../models");
-
+const EmailService = require("../service/emailService")
 const Session = db.sessions;
 const SessionParticipant = db.sessionParticipants;
 
@@ -50,36 +50,62 @@ const getSessionParticipants = async (req, res) => {
   // headerul Authorization din request. 
   // valoarea trebuie sa nu fie null si sa fie egala cu teachertoken din 
   // session-ul cerut
-  let token = req.headers['Authorization'];
-  const data = await Session.findAll({
-    include: [
-      {
-        model: SessionParticipant,
-        as: "sessionParticipant",
-      },
-    ],
-    where: { teacherToken: token },
+  let token = req.headers['authorization'];
+  if(token === undefined) {
+    res.status(401).send();
+    return;
+  }
+  const session = await Session.findOne({
+    where: { teacherToken: token }
   });
-  res.status(200).send(data);
+
+  if(!session) {
+    res.status(401).send();
+    return;
+  }
+
+  const sessionParticipants = await SessionParticipant.findAll(({
+    where: {
+      session_id: session.id
+    }
+  }));
+
+  res.status(200).send(sessionParticipants);
 };
 
 const addSessionParticipant = async (req, res) => {
-  // session id din header
-  // doar sesiunea ce are teacher token ca ala din authorization
+  
   // validare 
-  const participants = req.body.participants;
-  const data  = participants.map(student => {
+
+  let token = req.headers['authorization'];
+  if(token === undefined) {
+    res.status(401).send();
+    return;
+  }
+  const session = await Session.findOne({
+    where: { teacherToken: token }
+  });
+
+  if(!session) {
+    res.status(401).send();
+    return;
+  }
+
+  const participants = req.body;
+  console.log(participants);
+  const sessionParticipants  = participants.map(student => {
     return {
       studentToken: uuidv4(),
       email: student.email,
-      status: student.status,
-      session_id: student.id,
+      status: "CREATED",
+      session_id: session.id,
     }
   })
 
   // aici trb sa faci pt toti participantii sessionParticipantMonitoring
   
-  await SessionParticipant.bulkCreate(data);
+  await SessionParticipant.bulkCreate(sessionParticipants);
+  await sendEmails(sessionParticipants, session);
   res.status(201).send();
 };
 
@@ -90,38 +116,20 @@ const addSessionParticipant = async (req, res) => {
 // cauti participantii
 // trimiti mailurile pt fiecare 
 
-const sendEmails = (req, res) => {
-  const token = req.headers['Authorization'];
-
-  const session = await Session.findOne({where: {
-    teacherToken: token
-  }})
-
-  if(session == null) {
-    res.send(404).send();
-    return;
-  }
-
-  const sessionParticipants = await SessionParticipant.findAll(({
-    where: {
-      session_id: session.id
-    }
-  }));
-
-  if(sessionParticipants.length < 1) {
-    res.status(401).send();
-    return;
-  }
-
+const sendEmails = async (sessionParticipants, session) => {
   const emails = sessionParticipants.map(participant => {
     return {
       email: participant.email,
-      subject: `New session ${session.title}`,
+      subject: `Token for monitoring session [${session.title}]`,
       text: `Your participation token is ${participant.studentToken}`
     }
   })
+  try {
   await EmailService.sendEmails(emails);
-  res.status(200).send();
+  } catch(err) {
+    console.error("Email sending failed silently");
+    console.error(err);
+  }
 }
 
 module.exports = {

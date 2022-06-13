@@ -15,3 +15,7 @@ export type SessionParticipant = {
     status: string;
     email: string;
 }
+
+export type AddParticipantRequest = {
+    email: string;
+}
