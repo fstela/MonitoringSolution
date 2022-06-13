@@ -7,3 +7,8 @@ services:
       - MYSQL_DATABASE=licenta
     ports:
       - 3306:3306
+  mail:
+    image: maildev/maildev
+    ports:
+     - 1080:1080
+     - 1025:1025
