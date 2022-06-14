@@ -5,10 +5,10 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
     },
     startTime: {
-      type: DataTypes.STRING,
+      type: DataTypes.DATE,
     },
     stopTime: {
-      type: DataTypes.STRING,
+      type: DataTypes.DATE,
     },
     duration: {
       type: DataTypes.INTEGER,
