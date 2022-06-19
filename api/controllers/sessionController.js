@@ -107,17 +107,17 @@ const updateSession = async (req, res) => {
 };
 
 const deleteSession = async (req, res) => {
-  let id = req.params.id; // tokenul din token
-  // @todo onDelete Cascade
-  await Session.destroy({ where: { id: id } });
+  let token = req.headers["authorization"];
+  if (token === undefined) {
+    res.status(401).send();
+    return;
+  }
+
+  await Session.destroy({ where: { teacherToken: token } });
   res.status(200).send("session was deleted");
 };
 
 const getSessionParticipants = async (req, res) => {
-  // @todo doar teacherul are voie sa faca asta
-  // headerul Authorization din request.
-  // valoarea trebuie sa nu fie null si sa fie egala cu teachertoken din
-  // session-ul cerut
   let token = req.headers["authorization"];
   if (token === undefined) {
     res.status(401).send();
@@ -142,8 +142,6 @@ const getSessionParticipants = async (req, res) => {
 };
 
 const addSessionParticipant = async (req, res) => {
-  // validare
-
   let token = req.headers["authorization"];
   if (token === undefined) {
     res.status(401).send();

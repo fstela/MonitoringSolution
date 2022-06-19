@@ -39,6 +39,14 @@ const SessionMonitoring: React.FC = () => {
           //@ts-ignore
           .map((data) => ({ email: data.email } as AddParticipantRequest));
 
+        console.log("=====")
+        if(emails.length>0)
+        {
+          for(let i=0; i<0; i++){
+            console.log(emails[i]);
+          }
+        }
+        console.log("=====")
         if (emails.length > 0) {
           addParticipants(emails);
         }

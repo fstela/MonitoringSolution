@@ -44,6 +44,8 @@ db.sequelize.sync({ force: false }).then(() => {
 db.sessions.hasMany(db.sessionParticipants, {
   foreignKey: "session_id",
   as: "sessionParticipant",
+  onDelete: "cascade",
+  hooks: true,
 });
 
 db.sessionParticipants.belongsTo(db.sessions, {
@@ -54,6 +56,8 @@ db.sessionParticipants.belongsTo(db.sessions, {
 db.sessionParticipants.hasMany(db.sessionParticipantMonitoring, {
   foreignKey: "sessionParticipant_id",
   as: "sessionParticipantMonitoring",
+  onDelete: "cascade",
+  hooks: true,
 });
 
 db.sessionParticipantMonitoring.belongsTo(db.sessionParticipants, {
