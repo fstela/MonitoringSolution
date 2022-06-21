@@ -2,15 +2,32 @@ const db = require("../models");
 
 const SessionParticipant = db.sessionParticipants;
 const SessionParticipantMonitoring = db.sessionParticipantMonitoring;
-
+const Session = db.sessions;
 // doar daca token-ul din header  === teacherToken-ul sessiuni
 
 const getSessionParticipant = async (req, res) => {
-  let id = req.params.id;
-  let sessionParticipant = await SessionParticipant.findOne({
-    where: { id: id },
+  let token = req.headers["authorization"];
+  if (token === undefined) {
+    res.status(401).send();
+    return;
+  }
+  const session = await Session.findOne({
+    where: { teacherToken: token },
   });
-  res.status(200).send(sessionParticipant);
+  if (!session) {
+    res.status(401).send();
+    return;
+  }
+  try {
+    let sessionParticipant = await SessionParticipant.findOne({
+      attributes: { exclude: ["studentToken"] },
+      where: { session_id: session.id, id: req.params.id },
+    });
+    res.status(200).send(sessionParticipant);
+  } catch (e) {
+    console.log(e);
+    res.sendStatus(500);
+  }
 };
 
 const updateSessionParticipant = async (req, res) => {
@@ -22,11 +39,28 @@ const updateSessionParticipant = async (req, res) => {
 };
 
 const deleteSessionParticipant = async (req, res) => {
-  let id = req.params.id;
-  await SessionParticipant.destroy({ where: { id: id } });
-  res.status(200).send("Participant was deleted");
+  let token = req.headers["authorization"];
+  if (token === undefined) {
+    res.status(401).send();
+    return;
+  }
+  const session = await Session.findOne({
+    where: { teacherToken: token },
+  });
+  if (!session) {
+    res.status(401).send();
+    return;
+  }
+  try {
+    await SessionParticipant.destroy({
+      where: { session_id: session.id, id: req.params.id },
+    });
+    res.status(200).send("Participant was deleted");
+  } catch (e) {
+    console.log(e);
+    res.sendStatus(500);
+  }
 };
-
 
 // trb sa se faca cand se adauga participantii
 const addSessionParticipantMonitoring = async (req, res) => {

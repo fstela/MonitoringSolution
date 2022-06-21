@@ -25,10 +25,10 @@ router.delete(
   "/participants/:id",
   sessionParticipantController.deleteSessionParticipant
 );
-// router.get(
-//   "/participants/:id",
-//   sessionParticipantController.getSessionParticipant
-// );
+router.get(
+  "/participants/:id",
+  sessionParticipantController.getSessionParticipant
+);
 
 router.patch(
   "/participants/:id/monitoring",
