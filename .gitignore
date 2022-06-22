@@ -1,3 +1,5 @@
 node_modules
 ./client/dist
 client/dist/
+processing/venv/
+processing/.idea/
