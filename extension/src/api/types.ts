@@ -19,3 +19,10 @@ export type SessionParticipant = {
 export type AddParticipantRequest = {
     email: string;
 }
+
+export type SessionData = {
+    video: Buffer,
+    audio: Buffer,
+    keys: string[],
+    browser: string[]
+}

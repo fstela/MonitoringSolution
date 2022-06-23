@@ -1,8 +1,9 @@
-import React, { useState, useRef, useContext } from "react";
+import React, { useState, useRef, useContext, useEffect } from "react";
 
 import imgProf from "@assets/img/prof.png";
 import imgStud from "@assets//img/stud.png";
-import { VIEW_CREATE_SESSION, VIEW_SESSION_MONITORING } from "@src/pages/options/views";
+import { DEVICE_MEDIA_ACCESS_ACCEPTED, DEVICE_MEDIA_ACCESS_DECLINED, DEVICE_MEDIA_ACCESS_REQUESTED, VIEW_CREATE_SESSION, VIEW_MEDIA_ACCESS, VIEW_SESSION_MONITORING } from "@src/pages/options/views";
+import { getUserMediaStream } from "@src/service/media";
 const Authentication = () => {
   const [isStudent, setIsStudent] = useState(true);
   // const [isLoading, setIsLoading] = useState(false);
@@ -91,7 +92,45 @@ const TeacherForm: React.FC = () => {
 };
 
 const StudentForm: React.FC = () => {
-  const handleConnect = () => {};
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<undefined | string>();
+
+
+  const checkDeviceAccess = () => {
+    chrome.storage.local.get(["media_device_access"], result => {
+      if(result?.media_device_access !== undefined) {
+        if(result.media_device_access === DEVICE_MEDIA_ACCESS_REQUESTED) {
+          setIsLoading(true);
+        }
+        if(result.media_device_access === DEVICE_MEDIA_ACCESS_DECLINED) {
+          // can't access to media devices
+          setIsLoading(false);
+          setError("Error! You must allow access to camera and microphone");
+        }
+        if(result.media_device_access === DEVICE_MEDIA_ACCESS_ACCEPTED) {
+          const media = getUserMediaStream();
+          console.log(media);
+          chrome.runtime.sendMessage("ceva")
+          return;
+        }
+       
+      }
+      openRequestPermissionsPage();
+    });
+  }
+
+  const openRequestPermissionsPage = () => {
+    chrome.storage.local.set({ view: VIEW_MEDIA_ACCESS, media_device_access: DEVICE_MEDIA_ACCESS_REQUESTED });
+    chrome.runtime.openOptionsPage();
+    setIsLoading(true);
+  }
+
+
+  const handleConnect = () => {
+    checkDeviceAccess();
+    setIsLoading(true);
+  }
+
   return (
     <>
       <div>
@@ -102,13 +141,15 @@ const StudentForm: React.FC = () => {
               placeholder="XXXXXX-XXXXX-XXXXX-XXXXX"
               className="input input-bordered w-full mb-2"
             />
+            
             <button
-              className="btn btn-active btn-primary"
+              className={`btn btn-active btn-primary ${isLoading && "loading"}`}
               onClick={handleConnect}
             >
               Connect
             </button>
           </div>
+          {error && <p className="text-red-500">{error}</p>}
         </div>
       </div>
     </>
