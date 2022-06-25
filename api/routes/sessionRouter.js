@@ -1,3 +1,4 @@
+const multer = require("multer");
 const sessionController = require("../controllers/sessionController");
 const sessionParticipantController = require("../controllers/sessionParticipantController");
 const sessionParticipantMonitoringController = require("../controllers/sessionParticipantMonitoringController");
@@ -30,13 +31,11 @@ router.get(
   sessionParticipantController.getSessionParticipant
 );
 
-router.patch(
-  "/participants/:id/monitoring",
-  sessionParticipantController.addSessionParticipantMonitoring
-);
-
 router.get(
   "/participants/:id/monitoring",
   sessionParticipantMonitoringController.getParticipantMonitoring
 )
+
+router.post("/monitoring", multer().single("v"), (req, res) => sessionParticipantMonitoringController.postMonitoringData(req, res))
+
 module.exports = router;

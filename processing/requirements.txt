@@ -1,0 +1,11 @@
+amqp==5.1.1
+attrs==21.4.0
+certifi==2022.6.15
+jsonschema==4.6.0
+minio==7.1.9
+numpy==1.23.0
+opencv-python==4.5.3.56
+pika==1.2.1
+pyrsistent==0.18.1
+urllib3==1.26.9
+vine==5.0.0

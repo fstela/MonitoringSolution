@@ -2,23 +2,34 @@ module.exports = (sequelize, DataTypes) => {
   const SessionParticipantMonitoring = sequelize.define(
     "sessionParticipantMonitoring",
     {
-      videoMonitoring: {
+      videoFilePath: {
         type: DataTypes.STRING,
         allowNull: false
       },
-      keyLogging: {
+      loggedKeys: {
         type: DataTypes.STRING,
         allowNull: false
       },
-      audioMonitoring: {
+      browserData: {
         type: DataTypes.STRING,
         allowNull: false
       },
-      browserMonitoring: {
-        type: DataTypes.STRING,
-        allowNull: false
+      isAudioFlagged: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
       },
-      isFlagged: {
+      isVideoFlagged: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
+      },
+      isBrowserFlagged: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
+      },
+      isKeysFlagged: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: false

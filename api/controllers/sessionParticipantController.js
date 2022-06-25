@@ -1,7 +1,6 @@
 const db = require("../models");
 
 const SessionParticipant = db.sessionParticipants;
-const SessionParticipantMonitoring = db.sessionParticipantMonitoring;
 const Session = db.sessions;
 // doar daca token-ul din header  === teacherToken-ul sessiuni
 
@@ -62,25 +61,10 @@ const deleteSessionParticipant = async (req, res) => {
   }
 };
 
-// trb sa se faca cand se adauga participantii
-const addSessionParticipantMonitoring = async (req, res) => {
-  let info = {
-    videoMonitoring: req.body.videoMonitoring,
-    keyLogging: req.body.keyLogging,
-    audioMonitoring: req.body.audioMonitoring,
-    browserMonitoring: req.body.browserMonitoring,
-    date: req.body.date,
-    sessionParticipant_id: req.params.id,
-  };
 
-  const sessionParticipantMonitoring =
-    await SessionParticipantMonitoring.create(info);
-  res.status(200).send(sessionParticipantMonitoring);
-};
 
 module.exports = {
   getSessionParticipant,
   updateSessionParticipant,
-  deleteSessionParticipant,
-  addSessionParticipantMonitoring,
+  deleteSessionParticipant
 };
