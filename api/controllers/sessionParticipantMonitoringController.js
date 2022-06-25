@@ -6,6 +6,7 @@ const { ProcessingQueue } = require("../service/queueService");
 const SessionParticipant = db.sessionParticipants;
 const SessionParticipantMonitoring = db.sessionParticipantMonitoring;
 
+/** @todo upgrade this endpoint */
 const getParticipantMonitoring = async (req, res) => {
   // din header iei authorization, asta o sa fie student tokenul
   // verifica daca token-ul este == cu studentTokenul
@@ -73,17 +74,18 @@ const postMonitoringData = async (req, res) => {
   res.status(200).send();
 }
 
+/**
+ * Used for queue
+ */
 
 const monitoringResultSchema = Joi.object({
-  meta: Joi.object({
-    sessionParticipantId: Joi.string().required()
-  }),
   data: Joi.object({
     keys: Joi.array().items(Joi.string()).required(),
     browser: Joi.array().items(Joi.string()).required(),
-    video: Joi.string().required()
+    video: Joi.string().required(),
+    sessionParticipantId: Joi.number().required()
   }),
-  result: {
+  results: {
     audio: Joi.boolean().required(),
     video: Joi.boolean().required(),
     keys: Joi.boolean().required(),
@@ -95,13 +97,13 @@ const saveMonitoringProcessingResult = async (message) => {
   const validation = monitoringResultSchema.validate(message)
   
   if(validation.error) {
-    console.log("Invalid data format received from queue");
+    console.log("Invalid data format received from queue", validation.error);
     return;
   }
 
-  const sessionParticipant = SessionParticipant.findOne({
+  const sessionParticipant = await SessionParticipant.findOne({
     where: {
-      id: message.meta.sessionParticipantId  
+      id: message.data.sessionParticipantId  
     }
   })
 
@@ -112,14 +114,14 @@ const saveMonitoringProcessingResult = async (message) => {
 
   const data = {
     videoFilePath: message.data.video,
-    loggedKeys: Buffer.from(message.data.keys).toString('base64'),
-    browserData: Buffer.from(message.data.browser).toString('base64'),
-    isAudioFlagged: message.result.audio,
-    isVideoFlagged: message.result.video,
-    isBrowserFlagged: message.result.browser,
-    isKeysFlagged: message.result.keys,
-    data: new Date(),
-    sessionParticipant
+    loggedKeys: Buffer.from(JSON.stringify(message.data.keys)).toString('base64'),
+    browserData: Buffer.from(JSON.stringify(message.data.browser)).toString('base64'),
+    isAudioFlagged: message.results.audio,
+    isVideoFlagged: message.results.video,
+    isBrowserFlagged: message.results.browser,
+    isKeysFlagged: message.results.keys,
+    date: new Date().toISOString(),
+    session_participant_id: sessionParticipant.id
   }
 
   await SessionParticipantMonitoring.create(data)

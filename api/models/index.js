@@ -54,14 +54,14 @@ db.sessionParticipants.belongsTo(db.sessions, {
 });
 
 db.sessionParticipants.hasMany(db.sessionParticipantMonitoring, {
-  foreignKey: "sessionParticipant_id",
+  foreignKey: "session_participant_id",
   as: "sessionParticipantMonitoring",
   onDelete: "cascade",
   hooks: true,
 });
 
 db.sessionParticipantMonitoring.belongsTo(db.sessionParticipants, {
-  foreignKey: "sessionParticipant_id",
+  foreignKey: "session_participant_id",
   as: "sessionParticipant",
 });
 

@@ -17,7 +17,6 @@ class DataProcessor:
                 "video": {"type": "string"},
                 "keys": {"type": "array", "items": {"type": "string"}},
                 "browser": {"type": "array", "items": {"type": "string"}},
-                "sessionParticipantId": {"type": "string"}
             }
         }
 
@@ -32,7 +31,7 @@ class DataProcessor:
             "browser": self.__process_browser(data["browser"])
         }
 
-        return {"data": data, "results": processing_result, "meta": {"sessionParticipantId": data["sessionParticipantId"]}}
+        return {"data": data, "results": processing_result}
 
     def __get_file_bytes(self, path):
         content = self.__storage.get_file(path)

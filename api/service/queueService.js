@@ -5,9 +5,21 @@ class QueueService {
     static #QUEUE_NAME_PROC = "processing";
     static #QUEUE_NAME_PORC_RESPONSE = "processing_response";
 
+    /**
+     * @type {amq.Channel}
+     */
     #channel;
+
+    /**
+     * @type {string}
+     */
     #queue;
 
+    /**
+     * 
+     * @param {amq.Channel} channel 
+     * @param {string} queue 
+     */
     constructor(channel, queue) {
         this.#channel = channel;
         this.#queue = queue;
@@ -29,8 +41,14 @@ class QueueService {
         return await this.#makeChannel(this.#QUEUE_NAME_PROC);
     }
 
+    /**
+     * 
+     * @param {function(amq.ConsumeMessage,amq.Channel):void} onMessage 
+     */
     receive(onMessage) {
-        this.#channel.consume(this.#queue, onMessage);
+        this.#channel.consume(this.#queue, (msg) => onMessage(msg, this.#channel), {
+            noAck: false
+        });
     }
 
     send(data) {

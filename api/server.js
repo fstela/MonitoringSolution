@@ -3,6 +3,7 @@ const cors = require("cors");
 const {QueueService} = require("./service/queueService");
 
 const router = require("./routes/sessionRouter");
+const { saveMonitoringProcessingResult } = require("./controllers/sessionParticipantMonitoringController");
 const app = express();
 
 // middlewares
@@ -30,10 +31,17 @@ app.listen(8080, () => {
 // start listening on queue
 (async () => {
   const receiveingQueue = await QueueService.makeReceiveQueue();
-  receiveingQueue.receive((message) => {
-    console.log("\n---\n", message.content.toString());
+  receiveingQueue.receive((message, ch) => {
+    console.log("\n-- Received message from queue --\n", message.content.toString());
+    try {
+      ch.ack(message);
+      const data = JSON.parse(message.content.toString())
+      saveMonitoringProcessingResult(data)
+    } catch(e) {
+      console.log(`Failed to process queue message, invalid json format, error: ${e}`);
+      return;
+    }
   });
-  const sendingQueue = await QueueService.makeSendQueue();
 
   // setInterval(() => {
   //   sendingQueue.send({
