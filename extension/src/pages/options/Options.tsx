@@ -52,7 +52,7 @@ const Options: React.FC = () => {
             <Route path="/" element={<Landing />} />
             <Route path={ROUTE_CREATE_SESSION} element={<CreateSession />} />
             <Route path={ROUTE_VIEW_SESSION} element={<ViewSession />} />
-            <Route path={ROUTE_REQUEST_DEVICE_MEDIA_ACCESS} element={<DeviceMediaAccess / >} />
+            <Route path={ROUTE_REQUEST_DEVICE_MEDIA_ACCESS} element={<DeviceMediaAccess />} />
           </Routes>
         </MemoryRouter>
       </div>
