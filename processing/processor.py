@@ -14,6 +14,7 @@ class DataProcessor:
         self.__validation_schema = {
             "type": "object",
             "properties": {
+                "sessionParticipantId": {"type": "integer"},
                 "video": {"type": "string"},
                 "keys": {"type": "array", "items": {"type": "string"}},
                 "browser": {"type": "array", "items": {"type": "string"}},

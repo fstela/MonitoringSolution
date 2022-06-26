@@ -74,19 +74,6 @@ const Recording: React.FC = () => {
     setPort(portConn);
   };
 
-  const startMonitoring = () => {
-    getUserMediaStream().then((response) => {
-      if (response === false) {
-        setError("access");
-        return;
-      }
-      if (video.current && response) {
-        video.current.srcObject = response;
-        initRecording(response);
-        return;
-      }
-    });
-  };
 
   const initRecording = (stream: MediaStream) => {
     if (!stream) {
@@ -130,6 +117,22 @@ const Recording: React.FC = () => {
     }, 10 * 1000);
     setTimer(interval);
   };
+
+  const startMonitoring = () => {
+    getUserMediaStream().then((response) => {
+      if (response === false) {
+        setError("No media acess granted");
+        setStep("access")
+        return;
+      }
+      if (video.current && response) {
+        video.current.srcObject = response;
+        initRecording(response);
+        return;
+      }
+    });
+  };
+
 
   const stopMonitoring = () => {
     setIsStarted(false);
