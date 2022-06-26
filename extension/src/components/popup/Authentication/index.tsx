@@ -1,8 +1,8 @@
 import React, { useState, useRef, useContext, useEffect } from "react";
 
 import imgProf from "@assets/img/prof.png";
-import imgStud from "@assets//img/stud.png";
-import { DEVICE_MEDIA_ACCESS_ACCEPTED, DEVICE_MEDIA_ACCESS_DECLINED, DEVICE_MEDIA_ACCESS_REQUESTED, VIEW_CREATE_SESSION, VIEW_MEDIA_ACCESS, VIEW_SESSION_MONITORING } from "@src/pages/options/views";
+import imgStud from "@assets/img/stud.png";
+import { VIEW_CREATE_SESSION, VIEW_DATA_RECORDING, VIEW_SESSION_MONITORING } from "@src/pages/options/views";
 import { getUserMediaStream } from "@src/service/media";
 const Authentication = () => {
   const [isStudent, setIsStudent] = useState(true);
@@ -52,13 +52,17 @@ const Authentication = () => {
 const TeacherForm: React.FC = () => {
   const [token, setToken] = useState<string|undefined>(undefined);
   const handleCreateSession = () => {
-    chrome.storage.local.set({ view: VIEW_CREATE_SESSION });
-    chrome.runtime.openOptionsPage();
+    chrome.tabs.create({
+      active: true,
+      url: `${chrome.runtime.getURL("src/pages/options/index.html")}?page=create`
+    })
   };
   const handleConnect = () => {
     if(token) {
-    chrome.storage.local.set({ view: VIEW_SESSION_MONITORING, token: token });
-    chrome.runtime.openOptionsPage();
+    chrome.tabs.create({
+      active: true,
+      url: `${chrome.runtime.getURL("src/pages/options/index.html")}?page=view`
+    })
     }
   };
   return (
@@ -96,38 +100,55 @@ const StudentForm: React.FC = () => {
   const [error, setError] = useState<undefined | string>();
 
 
-  const checkDeviceAccess = () => {
-    chrome.storage.local.get(["media_device_access"], result => {
-      if(result?.media_device_access !== undefined) {
-        if(result.media_device_access === DEVICE_MEDIA_ACCESS_REQUESTED) {
-          setIsLoading(true);
-        }
-        if(result.media_device_access === DEVICE_MEDIA_ACCESS_DECLINED) {
-          // can't access to media devices
-          setIsLoading(false);
-          setError("Error! You must allow access to camera and microphone");
-        }
-        if(result.media_device_access === DEVICE_MEDIA_ACCESS_ACCEPTED) {
-          const media = getUserMediaStream();
-          console.log(media);
-          chrome.runtime.sendMessage("ceva")
-          return;
-        }
+  // const checkDeviceAccess = () => {
+  //   chrome.storage.local.get(["media_device_access"], result => {
+  //     if(result?.media_device_access !== undefined) {
+  //       if(result.media_device_access === DEVICE_MEDIA_ACCESS_REQUESTED) {
+  //         setIsLoading(true);
+  //       }
+  //       if(result.media_device_access === DEVICE_MEDIA_ACCESS_DECLINED) {
+  //         // can't access to media devices
+  //         setIsLoading(false);
+  //         setError("Error! You must allow access to camera and microphone");
+  //       }
+  //       if(result.media_device_access === DEVICE_MEDIA_ACCESS_ACCEPTED) {
+  //         const media = getUserMediaStream();
+  //         console.log(media);
+  //         chrome.runtime.sendMessage("ceva")
+  //         return;
+  //       }
        
-      }
-      openRequestPermissionsPage();
-    });
-  }
+  //     }
+  //     openRequestPermissionsPage();
+  //   });
+  // }
 
-  const openRequestPermissionsPage = () => {
-    chrome.storage.local.set({ view: VIEW_MEDIA_ACCESS, media_device_access: DEVICE_MEDIA_ACCESS_REQUESTED });
-    chrome.runtime.openOptionsPage();
-    setIsLoading(true);
-  }
+  // const openRequestPermissionsPage = () => {
+  //   chrome.storage.local.set({ view: VIEW_MEDIA_ACCESS, media_device_access: DEVICE_MEDIA_ACCESS_REQUESTED });
+  //   chrome.runtime.openOptionsPage();
+  //   setIsLoading(true);
+  // }
 
 
   const handleConnect = () => {
-    checkDeviceAccess();
+    chrome.storage.local.set({ view: VIEW_DATA_RECORDING});
+    var url = chrome.runtime.getURL("src/pages/options/index.html");
+    // console.log(url);
+    // window.open(`${url}?session=true`, "", "width=600,height=480,toolbar=no,menubar=no,resizable=yes")
+    chrome.windows.create({
+      url: `${url}?page=recording`,
+      width: 600,
+      height: 480,
+      type: "popup",
+      
+    }, (wind) => {
+      if(wind) {
+        chrome.storage.local.set({recordingWindowId: wind.id});
+      } else {
+        alert("Something went wrong")
+      }
+    })
+    // checkDeviceAccess();
     setIsLoading(true);
   }
 

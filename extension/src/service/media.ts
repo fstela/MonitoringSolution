@@ -1,10 +1,3 @@
-type DeviceStatus = {
-    hasMicrophone: boolean;
-    hasCamera: boolean;
-    hasMicrophoneAccess: boolean;
-    hasCameraAccess: boolean;
-}
-
 export const getUserMediaStream = async () => {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({

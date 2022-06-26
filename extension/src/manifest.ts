@@ -7,16 +7,17 @@ const manifest: ManifestType = {
   version: packageJson.version,
   description: packageJson.description,
   options_page: "src/pages/options/index.html",
-  background: { service_worker: "src/pages/background/index.js" },
+  background: {
+    service_worker: "src/pages/background/index.js",
+    type: "module",
+  },
   action: {
-    default_popup: "src/pages/popup/index.html"
+    default_popup: "src/pages/popup/index.html",
   },
   icons: {
-    "128": "./icon-128.png",
-    "48": "./icon-48.png",
-    "38": "./icon-38.png",
-    "19": "./icon-19.png",
-    "16": "./icon-16.png"
+    "16": "/icon-16.png",
+    "48": "/icon-48.png",
+    "128": "/icon-128.png",
   },
   content_scripts: [
     {
@@ -27,11 +28,13 @@ const manifest: ManifestType = {
   ],
   web_accessible_resources: [
     {
-      resources: ["contentStyle.css", "icon-128.png", "icon-38.png", "icon-48.png", "icon-19.png", "icon-16.png"],
+      resources: [
+        "contentStyle.css",
+      ],
       matches: [],
     },
   ],
-  permissions: ['storage', 'tabs', 'scripting']
+  permissions: ["storage", "tabs", "scripting", "downloads"],
 };
 
 export default manifest;
