@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const {QueueService} = require("./service/queueService");
 
-const router = require("./routes/sessionRouter");
+const router = require("./router");
 const { saveMonitoringProcessingResult } = require("./controllers/sessionParticipantMonitoringController");
 const app = express();
 

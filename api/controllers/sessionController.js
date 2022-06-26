@@ -45,23 +45,26 @@ const addSession = async (req, res) => {
   }
 };
 
-// const getAllSessions = async (req, res) => {
-//   let sessions = await Session.findAll({});
-//   res.status(200).send(sessions);
-// };
 
 const getSession = async (req, res) => {
-  let token = req.headers["authorization"];
+  const token = req.headers["authorization"];
   if (token === undefined) {
     res.status(401).send();
     return;
   }
-  let session = await Session.findOne({
+  
+  const session = await Session.findOne({
     attributes: { exclude: ["teacherToken"] },
     where: { teacherToken: token },
   });
+
+  if(session) {
+    res.status(404).send();
+    return;
+  }
   res.status(200).send(session);
 };
+
 
 const updateSession = async (req, res) => {
   let token = req.headers["authorization"];
@@ -167,18 +170,10 @@ const addSessionParticipant = async (req, res) => {
     };
   });
 
-  // aici trb sa faci pt toti participantii sessionParticipantMonitoring
-
   await SessionParticipant.bulkCreate(sessionParticipants);
   await sendEmails(sessionParticipants, session);
   res.status(201).send();
 };
-
-// inca o ruta, sendEmails. POST cu body empty.
-// iei teacherToken din hear
-// cauti sesiunea
-// cauti participantii
-// trimiti mailurile pt fiecare
 
 const sendEmails = async (sessionParticipants, session) => {
   const emails = sessionParticipants.map((participant) => {

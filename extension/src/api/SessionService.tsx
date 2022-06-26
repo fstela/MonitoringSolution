@@ -3,8 +3,8 @@ import {
   AddParticipantRequest,
   CreateSessionRequest,
   CreateSessionResponse,
-  SessionData,
   SessionParticipant,
+  SessionParticipantInfo,
 } from "./types";
 
 export default class SessionService extends BaseApi {
@@ -17,7 +17,7 @@ export default class SessionService extends BaseApi {
   public addParticipants = (emails: AddParticipantRequest[]) => {
     return this.client.post<void>("sessions/participants", emails);
   };
-  public pushData = (data:  SessionData) => {
-    return this.client.post<void>("session/data", data);
+  public getSessionParticipant = () => {
+    return this.client.get<SessionParticipantInfo>("sessions/participant");
   }
 }

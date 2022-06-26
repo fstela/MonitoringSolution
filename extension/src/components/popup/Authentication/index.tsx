@@ -2,67 +2,139 @@ import React, { useState, useRef, useContext, useEffect } from "react";
 
 import imgProf from "@assets/img/prof.png";
 import imgStud from "@assets/img/stud.png";
-import { VIEW_CREATE_SESSION, VIEW_DATA_RECORDING, VIEW_SESSION_MONITORING } from "@src/pages/options/views";
+import {
+  VIEW_CREATE_SESSION,
+  VIEW_DATA_RECORDING,
+  VIEW_SESSION_MONITORING,
+} from "@src/pages/options/views";
 import { getUserMediaStream } from "@src/service/media";
+import SessionService from "@src/api/SessionService";
+import { createClient } from "@src/api/ApiService";
+
+const WINDOW_MONITORING_ID_KEY = "monitoring_window_id";
 const Authentication = () => {
   const [isStudent, setIsStudent] = useState(true);
-  // const [isLoading, setIsLoading] = useState(false);
-  // const [authError, setAuthError] = useState(null);
+  const [activeMonitoringWindowId, setActiveMonitoringWindowId] = useState<
+    undefined | number
+  >(undefined);
+  useEffect(() => {
+    checkForActiveMonitoring();
+  }, []);
 
-  // const submitHandler = () => {
-  //   setAuthError(null);
-  //   setIsLoading(true);
-  // };
+  const checkForActiveMonitoring = () => {
+    chrome.storage.local.get(WINDOW_MONITORING_ID_KEY, (items) => {
+      console.log(items);
+      if (items[WINDOW_MONITORING_ID_KEY]) {
+        console.log("Active monitoring window found");
+        setActiveMonitoringWindowId(items[WINDOW_MONITORING_ID_KEY]);
+      }
+    });
+  };
+
+  const forceCloseMonitoringWindow = () => {
+    if (activeMonitoringWindowId) {
+      chrome.windows
+        .remove(activeMonitoringWindowId)
+        .then(
+          () => {
+            setActiveMonitoringWindowId(undefined);
+          },
+          () => {
+            setActiveMonitoringWindowId(undefined);
+          }
+        )
+        .catch(() => {
+          setActiveMonitoringWindowId(undefined);
+        });
+    } else {
+      // the window id was left behind so there is no monitoring in progress
+      setActiveMonitoringWindowId(undefined);
+    }
+  };
+
+  const onMonitoringActivated = (windowId: number) => {
+    setActiveMonitoringWindowId(windowId);
+  };
 
   return (
     <section className="p-10">
-      <h1 className="text-lg font-bold">Welcome!</h1>
-      <h1 className="text-lg">Please enter your credentials</h1>
-      <div className="mt-2">
-        <p>
-          Account type{" "}
-          <span className="mr-1 text-primary">
-            {isStudent ? "Student" : "Teacher"}
-          </span>
-        </p>
-      </div>
-      <div className="grid grid-cols-2 p-10">
-        <div>
-          <img
-            src={imgProf}
-            alt="Professor Illustration"
-            className={`max-h-40 ${!isStudent && "border-2"}`}
-            onClick={() => setIsStudent(false)}
-          />
-        </div>
-        <div>
-          <img
-            src={imgStud}
-            alt="Student Illustration"
-            className={`max-h-40 ${isStudent && "border-2"}`}
-            onClick={() => setIsStudent(true)}
-          />
-        </div>
-      </div>
-      {!isStudent ? <TeacherForm /> : <StudentForm />}
+      {activeMonitoringWindowId && (
+        <>
+          <h1 className="text-lg font-bold">Monitoring in progress!</h1>
+          <h1 className="text-lg">
+            Looks like you have a monitoring in progress, please continue in the
+            pop-up window
+          </h1>
+          <button
+            className={`btn btn-active btn-primary mt-5`}
+            onClick={forceCloseMonitoringWindow}
+          >
+            Force close monitoring
+          </button>
+        </>
+      )}
+      {!activeMonitoringWindowId && (
+        <>
+          <h1 className="text-lg font-bold">Welcome!</h1>
+          <h1 className="text-lg">Please enter your credentials</h1>
+          <div className="mt-2">
+            <p>
+              Account type{" "}
+              <span className="mr-1 text-primary">
+                {isStudent ? "Student" : "Teacher"}
+              </span>
+            </p>
+          </div>
+          <div className="grid grid-cols-2 p-10">
+            <div>
+              <img
+                src={imgProf}
+                alt="Professor Illustration"
+                className={`max-h-40 ${!isStudent && "border-2"}`}
+                onClick={() => setIsStudent(false)}
+              />
+            </div>
+            <div>
+              <img
+                src={imgStud}
+                alt="Student Illustration"
+                className={`max-h-40 ${isStudent && "border-2"}`}
+                onClick={() => setIsStudent(true)}
+              />
+            </div>
+          </div>
+          {!isStudent ? (
+            <TeacherForm />
+          ) : (
+            <StudentForm onMonitoringActivated={onMonitoringActivated} />
+          )}
+        </>
+      )}
     </section>
   );
 };
 
 const TeacherForm: React.FC = () => {
-  const [token, setToken] = useState<string|undefined>(undefined);
+  const [token, setToken] = useState<string | undefined>(undefined);
   const handleCreateSession = () => {
     chrome.tabs.create({
       active: true,
-      url: `${chrome.runtime.getURL("src/pages/options/index.html")}?page=create`
-    })
+      url: `${chrome.runtime.getURL(
+        "src/pages/options/index.html"
+      )}?page=create`,
+    });
   };
   const handleConnect = () => {
-    if(token) {
-    chrome.tabs.create({
-      active: true,
-      url: `${chrome.runtime.getURL("src/pages/options/index.html")}?page=view`
-    })
+    if (token) {
+      chrome.storage.local.set({ token }).then(() => {
+        console.log(token);
+        chrome.tabs.create({
+          active: true,
+          url: `${chrome.runtime.getURL(
+            "src/pages/options/index.html"
+          )}?page=view`,
+        });
+      });
     }
   };
   return (
@@ -74,7 +146,7 @@ const TeacherForm: React.FC = () => {
               type="text"
               placeholder="XXXXXX-XXXXX-XXXXX-XXXXX"
               className="input input-bordered w-full mb-2"
-              onChange={e => setToken(e.target.value)}
+              onChange={(e) => setToken(e.target.value)}
             />
             <button
               className="btn btn-active btn-primary"
@@ -95,62 +167,97 @@ const TeacherForm: React.FC = () => {
   );
 };
 
-const StudentForm: React.FC = () => {
+const StudentForm: React.FC<{
+  onMonitoringActivated: (windowId: number) => void;
+}> = ({ onMonitoringActivated }) => {
+  const [token, setToken] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<undefined | string>();
+  const [port, setPort] = useState<undefined | chrome.runtime.Port>(undefined);
 
+  useEffect(() => {
+    connectToPort();
+  }, []);
 
-  // const checkDeviceAccess = () => {
-  //   chrome.storage.local.get(["media_device_access"], result => {
-  //     if(result?.media_device_access !== undefined) {
-  //       if(result.media_device_access === DEVICE_MEDIA_ACCESS_REQUESTED) {
-  //         setIsLoading(true);
-  //       }
-  //       if(result.media_device_access === DEVICE_MEDIA_ACCESS_DECLINED) {
-  //         // can't access to media devices
-  //         setIsLoading(false);
-  //         setError("Error! You must allow access to camera and microphone");
-  //       }
-  //       if(result.media_device_access === DEVICE_MEDIA_ACCESS_ACCEPTED) {
-  //         const media = getUserMediaStream();
-  //         console.log(media);
-  //         chrome.runtime.sendMessage("ceva")
-  //         return;
-  //       }
-       
-  //     }
-  //     openRequestPermissionsPage();
-  //   });
-  // }
+  const connectToPort = () => {
+    const portConn = chrome.runtime.connect({ name: "monitoring" });
+    portConn.onDisconnect.addListener(connectToPort);
+    portConn.onMessage.addListener((msg) => {
+      console.log("received", msg, "from bg");
+    });
+    setPort(portConn);
+  };
 
-  // const openRequestPermissionsPage = () => {
-  //   chrome.storage.local.set({ view: VIEW_MEDIA_ACCESS, media_device_access: DEVICE_MEDIA_ACCESS_REQUESTED });
-  //   chrome.runtime.openOptionsPage();
-  //   setIsLoading(true);
-  // }
+  const verifyToken = () => {
+    if (!token || token.length < 2) {
+      setError("Invalid token");
+      return;
+    }
 
+    setIsLoading(true);
+
+    const clinet = createClient(token);
+    const service = new SessionService(clinet);
+
+    service
+      .getSessionParticipant()
+      .then(
+        (response) => {
+          if (response.status === 200) {
+            handleConnect();
+          } else {
+            console.log(response);
+            setError("Invalid token");
+            setIsLoading(false);
+          }
+        },
+        (err) => {
+          console.log(err);
+          setError("Invalid token");
+          setIsLoading(false);
+        }
+      )
+      .catch((err) => {
+        console.log(err);
+        setError("Invalid token");
+        setIsLoading(false);
+      });
+  };
 
   const handleConnect = () => {
-    chrome.storage.local.set({ view: VIEW_DATA_RECORDING});
+    // if port is not availabile
+    if (port === undefined) {
+      setError("Error, please restart your browser");
+      setIsLoading(false);
+      return;
+    }
+
     var url = chrome.runtime.getURL("src/pages/options/index.html");
-    // console.log(url);
-    // window.open(`${url}?session=true`, "", "width=600,height=480,toolbar=no,menubar=no,resizable=yes")
-    chrome.windows.create({
-      url: `${url}?page=recording`,
-      width: 600,
-      height: 480,
-      type: "popup",
-      
-    }, (wind) => {
-      if(wind) {
-        chrome.storage.local.set({recordingWindowId: wind.id});
-      } else {
-        alert("Something went wrong")
-      }
-    })
-    // checkDeviceAccess();
-    setIsLoading(true);
-  }
+
+    chrome.storage.local.set({ token }).then(() => {
+      chrome.windows.create(
+        {
+          url: `${url}?page=recording`,
+          width: 600,
+          height: 480,
+          type: "popup",
+        },
+        (wind) => {
+          if (wind && wind.id) {
+            port.postMessage({
+              action: "MONITORING_WINDOW_ACTIVATED",
+              id: wind.id,
+            });
+            chrome.storage.local.set({ [WINDOW_MONITORING_ID_KEY]: wind.id });
+            onMonitoringActivated(wind.id);
+          } else {
+            setError("Invalid token");
+            setIsLoading(false);
+          }
+        }
+      );
+    });
+  };
 
   return (
     <>
@@ -161,11 +268,12 @@ const StudentForm: React.FC = () => {
               type="text"
               placeholder="XXXXXX-XXXXX-XXXXX-XXXXX"
               className="input input-bordered w-full mb-2"
+              onChange={(e) => setToken(e.target.value)}
             />
-            
+
             <button
               className={`btn btn-active btn-primary ${isLoading && "loading"}`}
-              onClick={handleConnect}
+              onClick={verifyToken}
             >
               Connect
             </button>
