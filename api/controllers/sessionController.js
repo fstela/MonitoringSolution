@@ -189,8 +189,7 @@ const sendEmails = async (sessionParticipants, session) => {
     };
   });
   try {
-    await Email
-    Service.sendEmails(emails);
+    await EmailService.sendEmails(emails);
   } catch (err) {
     console.error("Email sending failed silently");
     console.error(err);
