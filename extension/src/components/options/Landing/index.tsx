@@ -1,11 +1,10 @@
-import OptionsContext from "@src/pages/options/context";
+
 import { ROUTE_CREATE_SESSION, ROUTE_RECORDING, ROUTE_VIEW_SESSION } from "@src/pages/options/routes";
 import React, { useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const Landing: React.FC = () => {
   const navigate = useNavigate();
-  const context = useContext(OptionsContext);
 
   useEffect(() => {
     let params = (new URL(window.location.href)).searchParams;
@@ -21,7 +20,7 @@ const Landing: React.FC = () => {
     }
   }, [])
 
-  return <p>salut... {JSON.stringify(context)}</p>;
+  return <p>salut... </p>;
 };
 
 export default Landing;

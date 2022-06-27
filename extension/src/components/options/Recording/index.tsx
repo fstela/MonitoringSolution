@@ -11,8 +11,8 @@ const mimeType = "video/webm; codecs=vp8";
 const WINDOW_MONITORING_ID_KEY = "monitoring_window_id";
 
 const Recording: React.FC = () => {
-  const video = useRef<HTMLVideoElement>(null);
   const [isStarted, setIsStarted] = useState(false);
+  const [stream, setStream] = useState<MediaStream | undefined>(undefined);
   const [sessionParticipantInfo, setSessionParticipantInfo] = useState<
     SessionParticipantInfo | undefined
   >(undefined);
@@ -28,10 +28,6 @@ const Recording: React.FC = () => {
     "initial_message" | "access" | "monitoring" | "end"
   >("initial_message");
 
-  const [sessionService, setSessionService] = useState<
-    SessionService | undefined
-  >(undefined);
-
   useEffect(() => {
     document.title = "Monitoring";
     connectToPort();
@@ -40,7 +36,6 @@ const Recording: React.FC = () => {
       if (items.token !== undefined) {
         const client = createClient(items.token);
         const service = new SessionService(client);
-        setSessionService(service);
         getSessionData(service);
       } else {
         setError("Something went wrong, please retry");
@@ -73,7 +68,6 @@ const Recording: React.FC = () => {
     });
     setPort(portConn);
   };
-
 
   const initRecording = (stream: MediaStream) => {
     if (!stream) {
@@ -122,17 +116,17 @@ const Recording: React.FC = () => {
     getUserMediaStream().then((response) => {
       if (response === false) {
         setError("No media acess granted");
-        setStep("access")
+        setStep("access");
         return;
       }
-      if (video.current && response) {
-        video.current.srcObject = response;
+      if (response) {
+        console.log(response);
+        setStream(response);
         initRecording(response);
         return;
       }
     });
   };
-
 
   const stopMonitoring = () => {
     setIsStarted(false);
@@ -151,8 +145,9 @@ const Recording: React.FC = () => {
   const closeWindow = () => {
     chrome.storage.local.get(WINDOW_MONITORING_ID_KEY, (items) => {
       if (items[WINDOW_MONITORING_ID_KEY]) {
-        chrome.storage.local.set({ [WINDOW_MONITORING_ID_KEY]: undefined });
-        chrome.windows.remove(items[WINDOW_MONITORING_ID_KEY]);
+        chrome.storage.local.remove([WINDOW_MONITORING_ID_KEY]).then(() => {
+          chrome.windows.remove(items[WINDOW_MONITORING_ID_KEY]);
+        });
       }
     });
   };
@@ -183,12 +178,12 @@ const Recording: React.FC = () => {
   };
 
   return (
-    <>
-      {error && <p>{error}</p>}
+    <div>
+      {error && <p className="p-10 text-red-500">{error}</p>}
       {!error && (
         <>
           {sessionParticipantInfo === undefined ? (
-            <>loading...</>
+            <progress className="progress w-full"></progress>
           ) : (
             <>
               {step === "initial_message" && (
@@ -211,23 +206,15 @@ const Recording: React.FC = () => {
                   start={startMonitoring}
                   stop={stopMonitoring}
                   sessionParticipant={sessionParticipantInfo}
-                >
-                  <video
-                    id="video"
-                    height="100%"
-                    width="100%"
-                    autoPlay={true}
-                    ref={video}
-                    muted={true}
-                  ></video>
-                </MonitoringStep>
+                  stream={stream}
+                />
               )}
               {step === "end" && <EndStep end={closeWindow} />}
             </>
           )}
         </>
       )}
-    </>
+    </div>
   );
 };
 
@@ -256,7 +243,12 @@ const InitialMessageStep: React.FC<{
 
   const calculateSessionStatus = () => {
     const now = moment();
-    if (now.isBetween(moment.unix(parseInt(startTime)), moment.unix(parseInt(stopTime)))) {
+    if (
+      now.isBetween(
+        moment.unix(parseInt(startTime)),
+        moment.unix(parseInt(stopTime))
+      )
+    ) {
       setSessionStatus("in_progress");
       return;
     }
@@ -271,8 +263,12 @@ const InitialMessageStep: React.FC<{
     <div className="p-10">
       <h1 className="font-bold text-lg mb-5">Hi! Welcome to {sessionName}</h1>
       <p>Your are logged as {email}</p>
-      <p className="mt-2 mb-2">Start time {moment.unix(parseInt(startTime)).format("LLLL")}</p>
-      <p className="mt-2 mb-2">End time {moment.unix(parseInt(stopTime)).format("LLLL")}</p>
+      <p className="mt-2 mb-2">
+        Start time {moment.unix(parseInt(startTime)).format("LLLL")}
+      </p>
+      <p className="mt-2 mb-2">
+        End time {moment.unix(parseInt(stopTime)).format("LLLL")}
+      </p>
       <p>You have {duration} minutes to complete the test</p>
       <button
         className="btn btn-active btn-primary mt-5 mr-3"
@@ -311,19 +307,23 @@ const RequestAccessStep: React.FC<{
       .catch(() => setState("error"));
   };
   return (
-    <>
-      <h1>Camera and microphone access</h1>
+    <div className="p-10">
+      <h1 className="font-bold text-lg mb-5">Camera and microphone access</h1>
       {state !== "ok" && (
         <>
           <p>
             You need to allow extension to access your microphone and camera
           </p>
           {state === "error" && (
-            <p>
+            <p className="text-red-500">
               Something went wrong, the permission request failed, try again
             </p>
           )}
-          <button onClick={requestAccess} disabled={state === "requested"}>
+          <button
+            className="btn btn-active btn-primary mt-5 mr-3"
+            onClick={requestAccess}
+            disabled={state === "requested"}
+          >
             Request access
           </button>
         </>
@@ -331,25 +331,38 @@ const RequestAccessStep: React.FC<{
       {state === "ok" && (
         <>
           <p>Access granted! You can continue to next step</p>
-          <button onClick={next}>Continue</button>
+          <button
+            className="btn btn-active btn-primary mt-5 mr-3"
+            onClick={next}
+          >
+            Continue
+          </button>
         </>
       )}
-    </>
+    </div>
   );
 };
 
 const MonitoringStep: React.FC<{
-  children: JSX.Element;
   sessionParticipant: SessionParticipantInfo;
   isStarted: boolean;
   start: () => void;
   stop: () => void;
-}> = ({ children, sessionParticipant, isStarted, start, stop }) => {
+  stream: MediaStream | undefined;
+}> = ({ sessionParticipant, isStarted, start, stop, stream }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    console.log("xxx", videoRef.current, stream);
+    if (videoRef.current && stream !== undefined) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [stream]);
   return (
-    <>
-      <h1>Session {sessionParticipant.session.title}</h1>
-      {children}
-      {isStarted && (
+    <div className="p-10">
+      <h1 className="font-bold text-lg mb-5">
+        Session {sessionParticipant.session.title}
+      </h1>
+      {!isStarted && (
         <>
           <p>
             Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsam
@@ -357,30 +370,56 @@ const MonitoringStep: React.FC<{
             facilis sapiente quae ut accusamus repudiandae laborum explicabo aut
             assumenda suscipit ipsum earum dicta.
           </p>
-          <button onClick={start}>Start Monitoring</button>
+          <button
+            className="btn btn-active btn-primary mt-5 mr-3"
+            onClick={start}
+          >
+            Start Monitoring
+          </button>
         </>
       )}
-      {!isStarted && (
+      <div className="w-full mb-3">
+        <video
+          id="video"
+          height="100%"
+          width="100%"
+          autoPlay={true}
+          ref={videoRef}
+          muted={true}
+        ></video>
+      </div>
+
+      {isStarted && (
         <>
-          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
-          <button onClick={stop}>Stop Monitoring</button>
+          <p>
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsam
+            fugiat, aspernatur, illum reiciendis consectetur labore pariatur.
+          </p>
+          <button
+            className="btn btn-active btn-primary mt-5 mr-3"
+            onClick={stop}
+          >
+            Stop Monitoring
+          </button>
         </>
       )}
-    </>
+    </div>
   );
 };
 
 const EndStep: React.FC<{ end: () => void }> = ({ end }) => {
   return (
-    <>
-      <h1>Thank you</h1>
+    <div className="p-10">
+      <h1 className="font-bold text-lg mb-5">Thank you</h1>
       <p>
         Lorem, ipsum dolor sit amet consectetur adipisicing elit. Sequi cum
         minima vitae perspiciatis itaque debitis mollitia dolores quis, saepe,
         quaerat numquam alias nisi, fuga dignissimos. Dolor soluta omnis ab cum.
       </p>
-      <button onClick={end}>Close</button>
-    </>
+      <button className="btn btn-active btn-primary mt-5 mr-3" onClick={end}>
+        Close
+      </button>
+    </div>
   );
 };
 

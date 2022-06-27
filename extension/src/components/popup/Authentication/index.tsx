@@ -2,16 +2,11 @@ import React, { useState, useRef, useContext, useEffect } from "react";
 
 import imgProf from "@assets/img/prof.png";
 import imgStud from "@assets/img/stud.png";
-import {
-  VIEW_CREATE_SESSION,
-  VIEW_DATA_RECORDING,
-  VIEW_SESSION_MONITORING,
-} from "@src/pages/options/views";
-import { getUserMediaStream } from "@src/service/media";
 import SessionService from "@src/api/SessionService";
 import { createClient } from "@src/api/ApiService";
 
 const WINDOW_MONITORING_ID_KEY = "monitoring_window_id";
+
 const Authentication = () => {
   const [isStudent, setIsStudent] = useState(true);
   const [activeMonitoringWindowId, setActiveMonitoringWindowId] = useState<
@@ -238,8 +233,8 @@ const StudentForm: React.FC<{
       chrome.windows.create(
         {
           url: `${url}?page=recording`,
-          width: 600,
-          height: 480,
+          width: 500,
+          height: 750,
           type: "popup",
         },
         (wind) => {

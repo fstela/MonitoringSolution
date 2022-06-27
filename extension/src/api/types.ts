@@ -10,7 +10,7 @@ export type CreateSessionResponse = {
 }
 
 export type SessionParticipant = {
-    id: string;
+    id: number;
     studentToken: string;
     status: string;
     email: string;

@@ -30,7 +30,7 @@ router.get("/sessions/participants", sessionController.getSessionParticipants);
  * Delete participant
  */
 router.delete(
-  "/participants/:id",
+  "/sessions/participants/:id",
   sessionParticipantController.deleteSessionParticipant
 );
 

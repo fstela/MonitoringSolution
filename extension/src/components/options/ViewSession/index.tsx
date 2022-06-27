@@ -1,21 +1,39 @@
 import { AddParticipantRequest, SessionParticipant } from "@src/api/types";
-import OptionsContext from "@src/pages/options/context";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { importCsvFile } from "@src/service/csv";
+import { createClient } from "@src/api/ApiService";
+import SessionService from "@src/api/SessionService";
+import { useNavigate } from "react-router-dom";
 
 const SessionMonitoring: React.FC = () => {
   const [participants, setParticipants] = useState<SessionParticipant[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [blobFile, setBlobFile] = useState(new Blob());
-  const context = useContext(OptionsContext);
   const inputFileRef = React.createRef<HTMLInputElement>();
+  const [service, setService] = useState<SessionService | undefined>(undefined);
+  const navigate = useNavigate();
   useEffect(() => {
-    getParticipants();
+    chrome.storage.local.get(["token"], (items) => {
+      console.log("aaa", items);
+      if (items.token) {
+        const client = createClient(items.token);
+        const service = new SessionService(client);
+        setService(service);
+        getParticipants(service);
+      } else {
+        toast.error(
+          "Invalid login token, please close the browser and try again",
+          {
+            duration: 30000,
+          }
+        );
+      }
+    });
   }, []);
 
-  const getParticipants = () => {
-    context.sessionService?.getParticipants().then((response) => {
+  const getParticipants = (service: SessionService) => {
+    service.getParticipants().then((response) => {
       setParticipants(response.data);
     });
   };
@@ -38,15 +56,14 @@ const SessionMonitoring: React.FC = () => {
           })
           //@ts-ignore
           .map((data) => ({ email: data.email } as AddParticipantRequest));
-
-        console.log("=====")
-        if(emails.length>0)
-        {
-          for(let i=0; i<0; i++){
+        console.log(emails);
+        console.log("=====");
+        if (emails.length > 0) {
+          for (let i = 0; i < 0; i++) {
             console.log(emails[i]);
           }
         }
-        console.log("=====")
+        console.log("=====");
         if (emails.length > 0) {
           addParticipants(emails);
         }
@@ -57,19 +74,42 @@ const SessionMonitoring: React.FC = () => {
   };
 
   const addParticipants = (emails: AddParticipantRequest[]) => {
-    context.sessionService?.addParticipants(emails).then(() => {
+    if (!service) {
+      toast.error(
+        "Invalid login token, please close the browser and try again",
+        {
+          duration: 30000,
+        }
+      );
+      return;
+    }
+    service.addParticipants(emails).then(() => {
       toggleModal();
       toast.success("Imported with success");
-      getParticipants();
+      getParticipants(service);
     });
   };
 
   const toggleModal = () => setShowModal(!showModal);
+  const deleteParticipant = (id: number) => {
+    if (service) {
+      service.deleteParticipant(id).then(() => {
+        toast.success("Participant deleted")
+        getParticipants(service);
+      });
+    }
+  };
 
   return (
     <div className="mt-10">
-      <div className="grid grid-cols-12 mb-10">
-        <h1 className="font-bold text-lg col-span-9">Session View</h1>
+      <div className="grid grid-cols-12 mb-10 gap-2">
+        <h1 className="font-bold text-lg col-span-6">Session View</h1>
+        <button
+          className="btn btn-primary btn-md col-span-3"
+          onClick={() => navigate("/monitoring")}
+        >
+          Monitoring
+        </button>
         <button
           className="btn btn-primary btn-md col-span-3"
           onClick={toggleModal}
@@ -97,7 +137,12 @@ const SessionMonitoring: React.FC = () => {
                 <td>{participant.status}</td>
                 <td>{participant.studentToken}</td>
                 <td>
-                  <button className="btn btn-error btn-sm">Delete</button>
+                  <button
+                    className="btn btn-error btn-sm"
+                    onClick={() => deleteParticipant(participant.id)}
+                  >
+                    Delete
+                  </button>
                 </td>
               </tr>
             ))}

@@ -17,6 +17,9 @@ export default class SessionService extends BaseApi {
   public addParticipants = (emails: AddParticipantRequest[]) => {
     return this.client.post<void>("sessions/participants", emails);
   };
+  public deleteParticipant = (id: number) => {
+    return this.client.delete<void>(`/sessions/participants/${id}`);
+  }
   public getSessionParticipant = () => {
     return this.client.get<SessionParticipantInfo>("sessions/participant");
   }

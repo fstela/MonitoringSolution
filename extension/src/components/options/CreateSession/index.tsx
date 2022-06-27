@@ -1,11 +1,10 @@
 import React, { useContext, useState } from "react";
 import DateTimePicker from "react-datetime-picker";
 import Joi from "joi";
-import OptionsContext from "@src/pages/options/context";
 import { getUnixTime } from "date-fns";
 import SessionService from "@src/api/SessionService";
 import { createClient } from "@src/api/ApiService";
-import toast, { useToaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { VIEW_SESSION_MONITORING } from "@src/pages/options/views";
 import { useNavigate } from "react-router-dom";
 
@@ -147,13 +146,11 @@ const SuccessMessage: React.FC<{ token: string }> = ({ token }) => {
     toast.success("Token copied to clipboard");
   };
 
-  const context = useContext(OptionsContext);
 
   const navigate = useNavigate();
   const navigateToSessionPage = () => {
-    context.setToken(token);
-    chrome.storage.local.set({ view: VIEW_SESSION_MONITORING, token }).then(() => {
-      navigate("/");
+    chrome.storage.local.set({ token }).then(() => {
+      navigate("/view");
     })
   };
 
