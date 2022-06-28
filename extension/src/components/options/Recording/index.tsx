@@ -27,6 +27,7 @@ const Recording: React.FC = () => {
   const [step, setStep] = useState<
     "initial_message" | "access" | "monitoring" | "end"
   >("initial_message");
+  const [token, setToken] = useState<undefined | string>(undefined)
 
   useEffect(() => {
     document.title = "Monitoring";
@@ -37,6 +38,7 @@ const Recording: React.FC = () => {
         const client = createClient(items.token);
         const service = new SessionService(client);
         getSessionData(service);
+        setToken(items.token)
       } else {
         setError("Something went wrong, please retry");
       }
@@ -80,11 +82,16 @@ const Recording: React.FC = () => {
       return;
     }
 
+    if(!token) {
+      console.log("No token");
+      return;
+    }
+
     var rec = new MediaRecorder(stream, {
       // twick these settings for better quality/space ratio
       mimeType,
-      audioBitsPerSecond: 100000,
-      videoBitsPerSecond: 4000000,
+      audioBitsPerSecond: 32000,
+      videoBitsPerSecond: 8000000,
     });
 
     rec.ondataavailable = pushData;
@@ -96,17 +103,18 @@ const Recording: React.FC = () => {
 
     port.postMessage({
       action: "START_MONITORING",
-      // @todo pass the token from the popup, do precheck at mount time, throw error for invalid token
-      token: "test",
+      token
     });
   };
 
   const registerChunckingTimer = (rec: MediaRecorder) => {
     var interval = setInterval(() => {
-      console.log(rec);
+     
       if (rec) {
         rec.stop();
-        rec.start();
+        setInterval(() => {
+          rec.start();
+        }, 300)
       }
     }, 10 * 1000);
     setTimer(interval);

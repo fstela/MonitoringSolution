@@ -122,14 +122,16 @@ chrome.tabs.onRemoved.addListener(function (tabId) {
   recordBrowserDataInState(data);
 });
 
-chrome.runtime.onMessage.addListener((message) => {
+chrome.runtime.onMessage.addListener( (message) => {
   console.log(message);
   if (message.action) {
-    if (message.action === "START_MONITORING") {
+    if (message.action === "START_MONITORING" && message.token) {
       EXT_STATE.isMonitoringStarted = true;
+      EXT_STATE.token = message.token
     }
     if (message.action === "STOP_MONITORING") {
       EXT_STATE.isMonitoringStarted = false;
+      EXT_STATE.token = undefined;
     }
     if (message.action === "RESET_MONITORING_DATA") {
       EXT_STATE.recordedBrowserData = [];
