@@ -9,6 +9,7 @@ QUEUE_NAME_PROCESSING = "processing"
 QUEUE_NAME_PROCESSING_RESPONSE = "processing_response"
 
 if __name__ == '__main__':
+    
     conn = pika.BlockingConnection(pika.URLParameters('amqp://user:123456@localhost:5672/localhost'))
     ch_data = conn.channel()
 
@@ -20,13 +21,8 @@ if __name__ == '__main__':
 
     def on_message(channel, method, properties, body):
         print("Received message {}", body)
-        # ch.basic_ack(message.delivery_tag)
-        # try:
         response = processor.process_message(body)
         ch_response.basic_publish(body=json.dumps(response), routing_key="", exchange=ch_response_exchange)
-        # except:
-        #     print("Failed to process the received message {}", message.delivery_tag)
-
 
     ch_data.basic_consume(queue=QUEUE_NAME_PROCESSING, on_message_callback=on_message, auto_ack=True)
     ch_data.start_consuming()

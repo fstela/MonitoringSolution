@@ -31,8 +31,6 @@ const postMonitoringData = async (req, res) => {
     return;
   }
 
-  // validate sessionp id
-
   let token = req.headers["authorization"];
   if (token === undefined) {
     res.status(401).send();

@@ -245,8 +245,8 @@ const InitialMessageStep: React.FC<{
     const now = moment();
     if (
       now.isBetween(
-        moment.unix(parseInt(startTime)),
-        moment.unix(parseInt(stopTime))
+        moment(startTime).subtract(moment.duration(3, "h")),
+        moment(stopTime).subtract(moment.duration(3, "h"))
       )
     ) {
       setSessionStatus("in_progress");
@@ -258,16 +258,23 @@ const InitialMessageStep: React.FC<{
     }
     setSessionStatus("not_started");
   };
-
   return (
     <div className="p-10">
       <h1 className="font-bold text-lg mb-5">Hi! Welcome to {sessionName}</h1>
-      <p>Your are logged as {email}</p>
+      <p>You are logged in as {email}</p>
       <p className="mt-2 mb-2">
-        Start time {moment.unix(parseInt(startTime)).format("LLLL")}
+        Start time{" "}
+        {moment(startTime)
+          .subtract(moment.duration(3, "h"))
+          .format("LLLL")
+          .toString()}
       </p>
       <p className="mt-2 mb-2">
-        End time {moment.unix(parseInt(stopTime)).format("LLLL")}
+        End time{" "}
+        {moment(stopTime)
+          .subtract(moment.duration(3, "h"))
+          .format("LLLL")
+          .toString()}
       </p>
       <p>You have {duration} minutes to complete the test</p>
       <button
@@ -365,10 +372,11 @@ const MonitoringStep: React.FC<{
       {!isStarted && (
         <>
           <p>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsam
-            fugiat, aspernatur, illum reiciendis consectetur labore pariatur
-            facilis sapiente quae ut accusamus repudiandae laborum explicabo aut
-            assumenda suscipit ipsum earum dicta.
+            Please beware. You are monitored. Any malicious activity will be
+            flagged.
+          </p>
+          <p>
+            <b>Good luck!</b>
           </p>
           <button
             className="btn btn-active btn-primary mt-5 mr-3"
@@ -391,10 +399,7 @@ const MonitoringStep: React.FC<{
 
       {isStarted && (
         <>
-          <p>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsam
-            fugiat, aspernatur, illum reiciendis consectetur labore pariatur.
-          </p>
+          <p>Please try to stay in the frame and look to the center of the screen</p>
           <button
             className="btn btn-active btn-primary mt-5 mr-3"
             onClick={stop}
