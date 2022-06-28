@@ -27,7 +27,7 @@ const Recording: React.FC = () => {
   const [step, setStep] = useState<
     "initial_message" | "access" | "monitoring" | "end"
   >("initial_message");
-  const [token, setToken] = useState<undefined | string>(undefined)
+  const [token, setToken] = useState<undefined | string>(undefined);
 
   useEffect(() => {
     document.title = "Monitoring";
@@ -38,7 +38,7 @@ const Recording: React.FC = () => {
         const client = createClient(items.token);
         const service = new SessionService(client);
         getSessionData(service);
-        setToken(items.token)
+        setToken(items.token);
       } else {
         setError("Something went wrong, please retry");
       }
@@ -82,7 +82,7 @@ const Recording: React.FC = () => {
       return;
     }
 
-    if(!token) {
+    if (!token) {
       console.log("No token");
       return;
     }
@@ -103,18 +103,17 @@ const Recording: React.FC = () => {
 
     port.postMessage({
       action: "START_MONITORING",
-      token
+      token,
     });
   };
 
   const registerChunckingTimer = (rec: MediaRecorder) => {
     var interval = setInterval(() => {
-     
       if (rec) {
         rec.stop();
-        setInterval(() => {
+        setTimeout(() => {
           rec.start();
-        }, 300)
+        }, 300);
       }
     }, 10 * 1000);
     setTimer(interval);
@@ -407,7 +406,9 @@ const MonitoringStep: React.FC<{
 
       {isStarted && (
         <>
-          <p>Please try to stay in the frame and look to the center of the screen</p>
+          <p>
+            Please try to stay in the frame and look to the center of the screen
+          </p>
           <button
             className="btn btn-active btn-primary mt-5 mr-3"
             onClick={stop}

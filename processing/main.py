@@ -21,8 +21,11 @@ if __name__ == '__main__':
 
     def on_message(channel, method, properties, body):
         print("Received message {}", body)
-        response = processor.process_message(body)
-        ch_response.basic_publish(body=json.dumps(response), routing_key="", exchange=ch_response_exchange)
+        try:
+            response = processor.process_message(body)
+            ch_response.basic_publish(body=json.dumps(response), routing_key="", exchange=ch_response_exchange)
+        except:
+            print("fail to process message")
 
     ch_data.basic_consume(queue=QUEUE_NAME_PROCESSING, on_message_callback=on_message, auto_ack=True)
     ch_data.start_consuming()
