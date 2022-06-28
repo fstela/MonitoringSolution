@@ -52,7 +52,7 @@ class QueueService {
     }
 
     send(data) {
-        this.#channel.sendToQueue(this.#queue, Buffer.from(JSON.stringify(data)))
+        this.#channel.sendToQueue(this.#queue, Buffer.from(JSON.stringify(data)), {headers: {"x-delay": 300}})
     }
 }
 

@@ -21,7 +21,7 @@ class StorageService {
             Key: name,
             Body: content
         };
-        this.#client.putObject(data, (err, data) => {
+        await this.#client.putObject(data, (err, data) => {
             console.log("Upload result: ", "error:" + err, data);
         })
     }
