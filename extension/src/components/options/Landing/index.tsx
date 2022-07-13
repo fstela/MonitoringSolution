@@ -20,7 +20,7 @@ const Landing: React.FC = () => {
     }
   }, [])
 
-  return <p>salut... </p>;
+  return <p>...</p>;
 };
 
 export default Landing;

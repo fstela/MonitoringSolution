@@ -88,7 +88,6 @@ const Recording: React.FC = () => {
     }
 
     var rec = new MediaRecorder(stream, {
-      // twick these settings for better quality/space ratio
       mimeType,
       audioBitsPerSecond: 32000,
       videoBitsPerSecond: 8000000,
