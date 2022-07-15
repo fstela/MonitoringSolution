@@ -1,5 +1,5 @@
 import { AddParticipantRequest, SessionParticipant } from "@src/api/types";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { importCsvFile } from "@src/service/csv";
 import { createClient } from "@src/api/ApiService";
@@ -12,6 +12,8 @@ const SessionMonitoring: React.FC = () => {
   const [blobFile, setBlobFile] = useState(new Blob());
   const inputFileRef = React.createRef<HTMLInputElement>();
   const [service, setService] = useState<SessionService | undefined>(undefined);
+  const [showAllowedWebsiteModal, setShowAllowedWebsiteModal] =
+    useState<boolean>(false);
   const navigate = useNavigate();
   useEffect(() => {
     chrome.storage.local.get(["token"], (items) => {
@@ -91,10 +93,12 @@ const SessionMonitoring: React.FC = () => {
   };
 
   const toggleModal = () => setShowModal(!showModal);
+  const toggleAllowedWebsites = () =>
+    setShowAllowedWebsiteModal(!showAllowedWebsiteModal);
   const deleteParticipant = (id: number) => {
     if (service) {
       service.deleteParticipant(id).then(() => {
-        toast.success("Participant deleted")
+        toast.success("Participant deleted");
         getParticipants(service);
       });
     }
@@ -105,16 +109,23 @@ const SessionMonitoring: React.FC = () => {
       <div className="grid grid-cols-12 mb-10 gap-2">
         <h1 className="font-bold text-lg col-span-6">Session View</h1>
         <button
-          className="btn btn-primary btn-md col-span-3"
+          className="btn btn-primary btn-md col-span-2"
           onClick={() => navigate("/monitoring")}
         >
           Monitoring
         </button>
         <button
-          className="btn btn-primary btn-md col-span-3"
+          className="btn btn-primary btn-md col-span-2"
           onClick={toggleModal}
         >
           Add participants
+        </button>
+
+        <button
+          className="btn btn-primary btn-md col-span-2"
+          onClick={toggleAllowedWebsites}
+        >
+          Websites
         </button>
       </div>
 
@@ -182,6 +193,115 @@ const SessionMonitoring: React.FC = () => {
               </button>
             </div>
           </div>
+        </div>
+        <WebsitesModal
+          isHidden={!showAllowedWebsiteModal}
+          cancel={() => setShowAllowedWebsiteModal(false)}
+          submit={(data) => {
+            setShowAllowedWebsiteModal(false);
+            console.log(data);
+          }}
+        />
+      </div>
+    </div>
+  );
+};
+
+const WebsitesModal: React.FC<{
+  isHidden: boolean;
+  cancel: () => void;
+  submit: (data: string[]) => void;
+}> = ({ isHidden, cancel, submit }) => {
+  const [data, setData] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  useEffect(() => {
+    setData(["test.ro"]);
+    setIsLoading(false);
+  }, [isHidden]);
+
+  const addWebsite = () => {
+    if (ref.current) {
+      const value = ref.current.value;
+      if (value) {
+        const values = [...data, value];
+        setData(values);
+        ref.current.value = "";
+      }
+    }
+  };
+
+  const ref = useRef<HTMLInputElement>(null);
+  return (
+    <div className={`modal ${!isHidden && "modal-open"}`}>
+      <div className="modal-box">
+        <h3 className="font-bold text-lg">Allowed websites</h3>
+        <p className="py-4">
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Minima magni
+          itaque sunt iusto tenetur in quae accusamus reiciendis minus? Fugit
+          sed sapiente dolorum assumenda nesciunt quaerat explicabo dicta porro
+          itaque.
+        </p>
+        {isLoading && <p>Loading data</p>}
+        {!isLoading && (
+          <>
+            <div className="grid grid-cols-6 gap-2 w-full mb-10 ">
+              <input
+                type="text"
+                placeholder="Type here"
+                className="input input-bordered w-full col-span-5"
+                ref={ref}
+              />
+              <button
+                className="btn btn-primary col-span-1"
+                onClick={addWebsite}
+              >
+                Add
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="table w-full">
+                <thead>
+                  <tr>
+                    <th>Website</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.map((website, index) => (
+                    <tr key={index}>
+                      <th>{website}</th>
+                      <td>
+                        <button
+                          className="btn btn-error btn-sm"
+                          onClick={() =>
+                            setData(data.filter((_, i) => i !== index))
+                          }
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+        <div className="modal-action">
+          <a href="#" className="btn btn-ghost" onClick={cancel}>
+            Cancel
+          </a>
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              submit(data);
+              toast.success("Websites list updated");
+            }}
+            disabled={false}
+          >
+            Save
+          </button>
         </div>
       </div>
     </div>
