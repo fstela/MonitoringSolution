@@ -1,4 +1,11 @@
+
 class BrowserProcessor:
     def process(self, data):
-        print(data)
-        return False
+        COUNTER = 0
+        for tracked in data["tracked_urls"]:
+            for allowed in data["allowed_urls"]:
+                if tracked == allowed:
+                    COUNTER = COUNTER + 1
+        if len(data["tracked_urls"]) != COUNTER:
+            return False
+        return True

@@ -9,3 +9,7 @@ pika==1.2.1
 pyrsistent==0.18.1
 urllib3==1.26.9
 vine==5.0.0
+PyAudio==0.2.11
+SpeechRecognition==3.8.1
+dlib==19.24.0
+moviepy==1.0.3

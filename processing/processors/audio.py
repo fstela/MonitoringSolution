@@ -4,7 +4,7 @@ import speech_recognition
 
 class AudioProcessor:
     def process(self, file):
-        video = moviepy.editor.VideoFileClip(file)
+        video = moviepy.editor.VideoFileClip("http://localhost:9060/monitoring/b832a39e-c644-4d13-b746-6bb33b4328b3.webm")
         audio = video.audio
         audio.write_audiofile("filename.wav")
         recognizer = speech_recognition.Recognizer()
