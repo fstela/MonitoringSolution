@@ -1,5 +1,5 @@
 from cv2 import cv2 as cv
-from utils.module import module as m
+from utils import module as m
 
 
 class VideoProcessor:
