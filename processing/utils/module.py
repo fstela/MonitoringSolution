@@ -27,8 +27,7 @@ LIGHT_RED = (2, 53, 255)
 
 
 detectFace = dlib.get_frontal_face_detector()
-predictor = dlib.shape_predictor(
-    "shape_predictor_68_face_landmarks.dat")
+predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
 
 
 def midpoint(pts1, pts2):
