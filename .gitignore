@@ -3,6 +3,14 @@ node_modules
 client/dist/
 processing/venv/
 processing/.idea/
+processing/tmp/
+processing/*.webm
 processing/__pycache__/
 
 processing/processors/__pycache__/
+
+.DS_Store
+
+*.webm
+
+processing/utils/__pycache__/

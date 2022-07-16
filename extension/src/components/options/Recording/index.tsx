@@ -6,7 +6,7 @@ import { createClient } from "@src/api/ApiService";
 import SessionService from "@src/api/SessionService";
 
 // video encoding
-const mimeType = "video/webm; codecs=vp8";
+const mimeType = "video/webm; codecs=vp9";
 
 const WINDOW_MONITORING_ID_KEY = "monitoring_window_id";
 

@@ -29,7 +29,7 @@ class QueueService {
 
         const connection = await amq.connect("amqp://user:123456@localhost:5672/localhost");
         const channel = await connection.createChannel();
-        await channel.assertQueue(queueName, {durable: false});
+        await channel.assertQueue(queueName, {durable: true});
         return new QueueService(channel, queueName);
     }
 

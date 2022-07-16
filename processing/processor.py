@@ -24,19 +24,22 @@ class DataProcessor:
     def process_message(self, message):
         print('Received: {}'.format(self, message))
         data = self.__validate(message)
-        file_bytes = self.__get_file_bytes(data["video"])
+        tmp_file_path = self.__get_file_tmp_path(data["video"])
         processing_result = {
-            "audio": self.__process_audio(file_bytes),
-            "video": self.__process_video(file_bytes),
+            "audio": self.__process_audio(tmp_file_path),
+            "video": self.__process_video(tmp_file_path),
             "keys": self.__process_keys(data["keys"]),
             "browser": self.__process_browser(data["browser"])
         }
-
+        self.__rm_tmp_path(tmp_file_path)
         return {"data": data, "results": processing_result}
 
-    def __get_file_bytes(self, path):
-        content = self.__storage.get_file(path)
+    def __get_file_tmp_path(self, path):
+        content = self.__storage.fetch_tmp_file(path)
         return content
+
+    def __rm_tmp_path(self, path):
+        self.__storage.rm_tmp_file(path)
 
     def __validate(self, message):
         data = json.loads(message)
