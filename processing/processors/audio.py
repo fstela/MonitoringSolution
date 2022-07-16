@@ -12,7 +12,7 @@ class AudioProcessor:
         filename = speech_recognition.AudioFile(audio_file_temp_path)
 
         with filename as source:
-            # recognizer.adjust_for_ambient_noise(source, duration=0.2)
+            recognizer.adjust_for_ambient_noise(source, duration=1)
             audio = recognizer.record(source)
         try:
             text = recognizer.recognize_google(audio, show_all=True)
@@ -29,6 +29,6 @@ class AudioProcessor:
         subprocess.run(
             ['ffmpeg', '-y', '-i', video_file_path, '-vn', output_path],
             # remove stout & sterr to see ffmpeg logs/erros
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.STDOUT
+            # stdout=subprocess.DEVNULL,
+            # stderr=subprocess.STDOUT
         )

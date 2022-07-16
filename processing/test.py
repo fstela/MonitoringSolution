@@ -12,7 +12,7 @@ if __name__ == '__main__':
     bp = BrowserProcessor()
     browser_data = {
         "allowed_urls": ['google.ro', 'wikipedia.org'],
-        "tracked_urls": ['https://google.ro/sdadadasd', 'https://en.wikipedia.org/wiki/James_Webb_Space_Telescope']
+        "tracked_urls": ['https://google.ro/sdadadasd', 'https://en.wikipedia.org/wiki/James_Webb_Space_Telescope', "https://github.com/kkroening/ffmpeg-python/issues/251"]
     }
     bp_res = bp.process(browser_data)
     kp = KeysProcessor()

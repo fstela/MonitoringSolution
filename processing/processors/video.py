@@ -29,5 +29,4 @@ class VideoProcessor:
             if key == ord('q'):
                 break
         camera.release()
-        camera.destroyAllWindows()
         return True
