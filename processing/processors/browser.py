@@ -1,4 +1,3 @@
-
 class BrowserProcessor:
     def process(self, data):
         COUNTER = 0
