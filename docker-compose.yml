@@ -28,7 +28,7 @@ services:
       image: rabbitmq:3.8.17-management-alpine
       environment: 
           - RABBITMQ_DEFAULT_USER=user
-          - RABBITMQ_DEFAULT_PASS=123456
+          - RABBITMQ_DEFAULT_PASS=1234c56
           - RABBITMQ_DEFAULT_VHOST=localhost
       ports:
           - 5672:5672

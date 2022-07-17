@@ -17,8 +17,8 @@ const EXT_STATE = {
   view: undefined,
   isMonitoringStarted: false,
   monitoringWindowId: undefined,
-  recordedBrowserData: [] as Object[],
-  recordedKeyData: [] as Object[],
+  recordedBrowserData: [] as string[],
+  recordedKeyData: [] as string[],
 };
 
 /**
@@ -28,8 +28,8 @@ chrome.runtime.onConnect.addListener((port) => {
   if (port.name !== "monitoring") return;
   port.onMessage.addListener(onMessage);
   port.onDisconnect.addListener(deleteTimer);
-  // 5min 5sec
-  port._timer = setTimeout(forceReconnect, 250e3, port);
+  // 1min
+  port._timer = setTimeout(forceReconnect, 60e3, port);
 });
 
 const forceReconnect = (port: chrome.runtime.Port) => {
@@ -71,63 +71,49 @@ chrome.tabs.onCreated.addListener(function (tab) {
   if (!EXT_STATE.isMonitoringStarted) {
     return;
   }
-  const data = {
-    type: "created",
-    id: tab.id,
-    tab: {
-      id: tab.id,
-      isActive: tab.active,
-      isAudible: tab.audible,
-      isHighlighted: tab.highlighted,
-      url: tab.url,
-    },
-    date: new Date().toISOString(),
-  };
-  recordBrowserDataInState(data);
+  recordBrowserDataInState(
+    buildMessage(
+      "creted",
+      tab.url ?? "none",
+      tab.active,
+      tab.highlighted,
+      tab.audible ?? false
+    )
+  );
 });
 
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
   if (!EXT_STATE.isMonitoringStarted) {
     return;
   }
-  const data = {
-    type: "change",
-    id: tabId,
-    changes: {
-      url: changeInfo.url,
-      title: changeInfo.title,
-      isAudible: changeInfo.audible,
-    },
-    tab: {
-      id: tab.id,
-      isActive: tab.active,
-      isAudible: tab.audible,
-      isHighlighted: tab.highlighted,
-      url: tab.url,
-    },
-    date: new Date().toISOString(),
-  };
-  recordBrowserDataInState(data);
+  recordBrowserDataInState(
+    buildMessage(
+      "change",
+      tab.url ?? "none",
+      tab.active,
+      tab.highlighted,
+      tab.audible ?? false
+    )
+  );
 });
 
-chrome.tabs.onRemoved.addListener(function (tabId) {
-  if (!EXT_STATE.isMonitoringStarted) {
-    return;
-  }
-  const data = {
-    type: "removed",
-    id: tabId,
-    date: new Date().toISOString(),
-  };
-  recordBrowserDataInState(data);
-});
+const buildMessage = (
+  action: string,
+  url: string,
+  active: boolean,
+  highlighted: boolean,
+  audible: boolean
+) => {
+  return `[action_${action}]#[url_${
+    url ?? "none"
+  }]#[active_${active}]#[highlighted_${highlighted}]#[audible_${audible}]`;
+};
 
-chrome.runtime.onMessage.addListener( (message) => {
-  console.log(message);
+chrome.runtime.onMessage.addListener((message) => {
   if (message.action) {
     if (message.action === "START_MONITORING" && message.token) {
       EXT_STATE.isMonitoringStarted = true;
-      EXT_STATE.token = message.token
+      EXT_STATE.token = message.token;
     }
     if (message.action === "STOP_MONITORING") {
       EXT_STATE.isMonitoringStarted = false;
@@ -155,21 +141,18 @@ const recordKeysDataInState = (data: Object) => {
 };
 
 const pushMonitoringData = (videoData: any) => {
-
   // if you need to test the video output directly
   //
   // chrome.downloads.download({
   //   filename: "ceva.webm",
   //   url: videoData
   // })
-  
+
   const data = {
     browser: EXT_STATE.recordedBrowserData,
     keys: EXT_STATE.recordedKeyData,
   };
 
-  EXT_STATE.recordedBrowserData = [];
-  EXT_STATE.recordedKeyData = [];
 
   // base64 -> blob
   fetch(videoData)
@@ -179,9 +162,8 @@ const pushMonitoringData = (videoData: any) => {
     .then(console.log);
 };
 
-const saveData = (data: any) => {
-
-  if(EXT_STATE.token === undefined) {
+const saveData = (data: {videoBlob: Blob, browser: string[], keys: string[]}) => {
+  if (EXT_STATE.token === undefined) {
     // todo, announce the user using port conn
     console.log("Token not found! Failed to push data");
     return;
@@ -191,11 +173,21 @@ const saveData = (data: any) => {
   myHeaders.append("Authorization", EXT_STATE.token);
 
   const formdata = new FormData();
-  formdata.append("keys", "dasdasdasd");
   formdata.append("v", data.videoBlob);
-  formdata.append("browser", "dasdasdasd");
-  formdata.append("keys", "adasssss");
-  formdata.append("browser", "xxxx");
+
+  data.browser.forEach((data) => {
+    formdata.append("browser", data);
+  });
+  if(data.browser.length == 0 ) {
+    formdata.append("browser", '');
+  }
+
+  data.keys.forEach((data) => {
+    formdata.append("keys", data);
+  });
+  if(data.keys.length == 0 ) {
+    formdata.append("keys", '');
+  }
 
   const errorMessage = "Failed to send data to the server";
 

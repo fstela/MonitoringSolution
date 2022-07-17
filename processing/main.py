@@ -21,11 +21,11 @@ if __name__ == '__main__':
     ch_response.queue_bind(queue=QUEUE_NAME_PROCESSING_RESPONSE, exchange=ch_response_exchange)
 
     def on_message(channel, method, properties, body):
-        print("Received message {}", body)
+        print("Received message {}".format(body))
         try:
             response = processor.process_message(body)
-            ch_response.basic_publish(body=json.dumps(response), routing_key="", exchange=ch_response_exchange)
-        except:
+            ch_response.basic_publish(body=json.dumps(response).encode(), routing_key=QUEUE_NAME_PROCESSING_RESPONSE, exchange=ch_response_exchange)
+        except Exception as e:
             print("fail to process message")
 
     ch_data.basic_consume(queue=QUEUE_NAME_PROCESSING, on_message_callback=on_message, auto_ack=True)

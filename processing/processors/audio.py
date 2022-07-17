@@ -29,6 +29,6 @@ class AudioProcessor:
         subprocess.run(
             ['ffmpeg', '-y', '-i', video_file_path, '-vn', output_path],
             # remove stout & sterr to see ffmpeg logs/erros
-            # stdout=subprocess.DEVNULL,
-            # stderr=subprocess.STDOUT
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.STDOUT
         )

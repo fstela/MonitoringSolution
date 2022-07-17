@@ -1,11 +1,14 @@
 import { Chart as ChartJS, registerables } from "chart.js";
 import { Bar } from "react-chartjs-2";
 ChartJS.register(...registerables);
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { faker } from "@faker-js/faker";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import moment from "moment";
 import colorLib from "@kurkle/color";
+import { createClient } from "@src/api/ApiService";
+import SessionService from "@src/api/SessionService";
+import toast from "react-hot-toast";
 
 export function transparentize(value: string, opacity: number) {
   var alpha = opacity === undefined ? 0.5 : 1 - opacity;
@@ -25,34 +28,50 @@ export const CHART_COLORS = {
 const MonitoringDetail = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(1);
-  const getData = () => {
+  const { id } = useParams();
+  if (!id) {
+    throw Error("Invalid id");
+  }
+
+  useEffect(() => {
+    let timer = undefined as any;
+    chrome.storage.local.get(["token"], (items) => {
+      if (items.token) {
+        const client = createClient(items.token);
+        const service = new SessionService(client);
+        loadData(service);
+        timer = setInterval(() => loadData(service), 5000);
+      } else {
+        toast.error(
+          "Invalid login token, please close the browser and try again",
+          {
+            duration: 30000,
+          }
+        );
+      }
+    });
+    return () => {
+      timer && clearInterval(timer);
+    };
+  }, []);
+
+  const loadData = (service: SessionService) => {
+    service.getParticipantMonitoringData(id).then(response => {
+      const labels = [] as string[];
+      const a = [] as number[];
+      const v = [] as number[];
+      const k = [] as number[];
+      const b = [] as number[];
+      response.data.recordings.forEach(r => {
+        labels.push(moment(r.date).format("LTS"))
+        a.push(r.a)
+      })
+    })
+  };
+
+  const getData = (labels: string[], a: number[], v: number[], k: number[], b: number[]) => {
     let chartData = {
-      labels: [
-        "11:00",
-        "11:01",
-        "11:02",
-        "11:03",
-        "11:04",
-        "11:05",
-        "11:06",
-        "11:07",
-        "11:08",
-        "11:09",
-        "11:10",
-        "11:11",
-        "11:12",
-        "11:13",
-        "11:14",
-        "11:15",
-        "11:16",
-        "11:17",
-        "11:18",
-        "11:19",
-        "11:20",
-        "11:20",
-        "11:25",
-        "11:30",
-      ],
+      labels: labels,
       scales: {
         x: {
           stacked: true,
@@ -64,41 +83,31 @@ const MonitoringDetail = () => {
       datasets: [
         {
           label: "Audio Flags",
-          data: ["0"],
+          data: a,
           borderColor: "blue",
           backgroundColor: transparentize(CHART_COLORS.blue, 0.5),
         },
         {
           label: "Video Flags",
-          data: ["0"],
+          data: v,
           borderColor: "orange",
           backgroundColor: transparentize(CHART_COLORS.orange, 0.5),
         },
         {
           label: "Keys Flags",
-          data: ["0"],
+          data: k,
           borderColor: "green",
           backgroundColor: transparentize(CHART_COLORS.green, 0.5),
         },
         {
           label: "Browser Flags",
-          data: ["0"],
+          data: b,
           borderColor: "purple",
           backgroundColor: transparentize(CHART_COLORS.purple, 0.5),
         },
       ],
     };
 
-    let data = [];
-
-    for (let i = 3; i >= 0; i--) {
-      for (let i = 23; i > 0; i--) {
-        data.push(faker.random.numeric());
-      }
-
-      chartData.datasets[i].data = data;
-      data = [];
-    }
     return chartData;
   };
   return (

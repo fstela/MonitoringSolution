@@ -16,6 +16,10 @@ module.exports = (sequelize, DataTypes) => {
     teacherToken: {
       type: DataTypes.STRING,
     },
+    allowedUrls: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    }
   });
   return Session;
 };

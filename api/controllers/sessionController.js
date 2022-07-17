@@ -5,7 +5,7 @@ const EmailService = require("../service/emailService");
 const Session = db.sessions;
 const SessionParticipant = db.sessionParticipants;
 const helpers = require("../helpers");
-
+const {extractTokenFromHeader, generateJwt} = require("../service/security");
 const sessionSchema = Joi.object({
   title: Joi.string().min(2).max(100).required(),
   startTime: Joi.date().iso().required(),
@@ -30,44 +30,50 @@ const addSession = async (req, res) => {
   }
 
   try {
+    const teacherToken = uuidv4();
     let info = {
       title: req.body.title,
       startTime: req.body.startTime,
       stopTime: req.body.endTime,
       duration: req.body.duration,
-      teacherToken: uuidv4(),
+      teacherToken: teacherToken
     };
     const session = await Session.create(info);
-    res.status(200).send(session);
+    res.status(200).send({...session, jwt: generateJwt(teacherToken)});
   } catch (e) {
     console.log(e);
     res.sendStatus(500);
   }
 };
 
-
 const getSession = async (req, res) => {
-  const token = req.headers["authorization"];
+  const token = extractTokenFromHeader(req);
   if (token === undefined) {
     res.status(401).send();
     return;
   }
-  
+
   const session = await Session.findOne({
     attributes: { exclude: ["teacherToken"] },
     where: { teacherToken: token },
   });
 
-  if(session) {
+  try {
+    const allowedUrls = JSON.parse(session.allowedUrls);
+    session.allowedUrls = allowedUrls;
+  } catch {
+    session.allowedUrls = []
+    console.log("Failed to deserialize allowedUrls")
+  }
+  if (!session) {
     res.status(404).send();
     return;
   }
   res.status(200).send(session);
 };
 
-
 const updateSession = async (req, res) => {
-  let token = req.headers["authorization"];
+  const token = extractTokenFromHeader(req);
   if (token === undefined) {
     res.status(401).send();
     return;
@@ -109,8 +115,37 @@ const updateSession = async (req, res) => {
   }
 };
 
+const UpdateAllowedUrlsSchema = Joi.object({
+  urls: Joi.array().items(Joi.string()).required(),
+});
+
+const updateAllowedUrls = async (req, res) => {
+  const token = extractTokenFromHeader(req);
+  if (token === undefined) {
+    res.status(401).send();
+    return;
+  }
+  const validationResult = UpdateAllowedUrlsSchema.validate(req.body);
+  if (validationResult.error) {
+    res.status(401).send();
+    return;
+  }
+  const session = await Session.findOne({
+    where: { teacherToken: token },
+  });
+
+  if (!session) {
+    res.status(401).send();
+    return;
+  }
+
+  session.allowedUrls = JSON.stringify(req.body.urls);
+  await session.save();
+  res.status(200).send();
+};
+
 const deleteSession = async (req, res) => {
-  let token = req.headers["authorization"];
+  const token = extractTokenFromHeader(req);
   if (token === undefined) {
     res.status(401).send();
     return;
@@ -121,7 +156,7 @@ const deleteSession = async (req, res) => {
 };
 
 const getSessionParticipants = async (req, res) => {
-  let token = req.headers["authorization"];
+  const token = extractTokenFromHeader(req);
   if (token === undefined) {
     res.status(401).send();
     return;
@@ -145,7 +180,7 @@ const getSessionParticipants = async (req, res) => {
 };
 
 const addSessionParticipant = async (req, res) => {
-  let token = req.headers["authorization"];
+  const token = extractTokenFromHeader(req);
   if (token === undefined) {
     res.status(401).send();
     return;
@@ -198,4 +233,5 @@ module.exports = {
   deleteSession,
   getSessionParticipants,
   addSessionParticipant,
+  updateAllowedUrls,
 };

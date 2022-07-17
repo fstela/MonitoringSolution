@@ -3,9 +3,12 @@ import { Line } from "react-chartjs-2";
 ChartJS.register(...registerables);
 import colorLib from "@kurkle/color";
 import { useNavigate } from "react-router-dom";
-import { faker } from "@faker-js/faker";
 import moment from "moment";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { createClient } from "@src/api/ApiService";
+import SessionService from "@src/api/SessionService";
+import toast from "react-hot-toast";
+import { SessionMonitoringParticipant } from "@src/api/types";
 export const CHART_COLORS = {
   red: "rgb(255, 99, 132)",
   orange: "rgb(255, 159, 64)",
@@ -31,77 +34,80 @@ export function rand(min: number, max: number, seed: number) {
   return min + (seed / 233280) * (max - min);
 }
 
-const participants = () => {
-  const data = [];
-  for (let i = 30; i > 0; i--) {
-    const random = {
-      id: i,
-      time: faker.date.between(
-        moment().toDate(),
-        moment().add(1, "h").toDate()
-      ),
-      email: faker.internet.email(),
-      audio: parseInt(faker.random.numeric()),
-      video: parseInt(faker.random.numeric()),
-      keys: parseInt(faker.random.numeric()),
-      browser: parseInt(faker.random.numeric()),
-    };
-
-    data.push({
-      ...random,
-      total: random.audio + random.video + random.keys + random.browser,
-    });
-  }
-  return data;
+const GRAPH_DATA = {
+  labels: [] as string[],
+  datasets: [
+    {
+      label: "Falgged participants",
+      data: [] as number[],
+      borderColor: "red",
+      backgroundColor: transparentize(CHART_COLORS.red, 0.5),
+      pointStyle: "circle",
+      pointRadius: 10,
+      pointHoverRadius: 15,
+    },
+  ],
 };
 
 const Monitoring = () => {
+  const [graphData, setGrapData] = useState(GRAPH_DATA);
+  const [participants, setParticipants] = useState<
+    SessionMonitoringParticipant[]
+  >([]);
+  const [stats, setStats] = useState<
+    | undefined
+    | { noPart: number; a: number; v: number; k: number; b: number; t: number }
+  >();
+  const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     document.title = "Session Monitoring | Overview";
+    let timer = undefined as any;
+    chrome.storage.local.get(["token"], (items) => {
+      if (items.token) {
+        const client = createClient(items.token);
+        const service = new SessionService(client);
+        loadData(service);
+        timer = setInterval(() => loadData(service), 5000);
+      } else {
+        toast.error(
+          "Invalid login token, please close the browser and try again",
+          {
+            duration: 30000,
+          }
+        );
+      }
+    });
+    return () => {
+      timer && clearInterval(timer);
+    };
   }, []);
-  const navigate = useNavigate();
-  const GRAPH_DATA = {
-    labels: [
-      "11:00",
-      "11:01",
-      "11:02",
-      "11:03",
-      "11:04",
-      "11:05",
-      "11:06",
-      "11:07",
-      "11:08",
-      "11:09",
-      "11:10",
-      "11:11",
-      "11:12",
-      "11:13",
-      "11:14",
-      "11:15",
-      "11:16",
-      "11:17",
-      "11:18",
-      "11:19",
-      "11:20",
-      "11:20",
-      "11:25",
-      "11:30",
-    ],
-    datasets: [
-      {
-        label: "Falgged participants",
-        data: [
-          0, 3, 2, 4, 1, 9, 0, 0, 0, 0, 4, 2, 7, 10, 2, 4, 0, 1, 2, 0, 2, 4, 6,
-          4, 3, 10, 4, 5,
-        ],
-        borderColor: "red",
-        backgroundColor: transparentize(CHART_COLORS.red, 0.5),
-        pointStyle: "circle",
-        pointRadius: 10,
-        pointHoverRadius: 15,
-      },
-    ],
+
+  const loadData = (service: SessionService) => {
+    service.getSessionMonitoringData().then((response) => {
+      const graph = GRAPH_DATA;
+      const stats = { noPart: 0, a: 0, v: 0, k: 0, b: 0, t: 0 };
+      response.data.graph.forEach((gd) => {
+        graph.labels.push(moment(gd.date).format("LTS"));
+        graph.datasets[0].data.push(gd.value);
+      });
+      response.data.participants.forEach((p) => {
+        stats.noPart += 1;
+        stats.a += p.a;
+        stats.v += p.v;
+        stats.k += p.k;
+        stats.b += p.b;
+        stats.t += p.a + p.v + p.k + p.b;
+      });
+
+      setGrapData({ ...graph });
+      setParticipants(response.data.participants);
+      setIsLoading(false);
+      setStats(stats);
+    });
   };
+
+  const navigate = useNavigate();
+
   return (
     <div className="mt-10">
       <div className="grid grid-cols-12 mb-10 gap-2">
@@ -117,39 +123,37 @@ const Monitoring = () => {
         <div className="stats shadow">
           <div className="stat">
             <div className="stat-title">Total Participants</div>
-            <div className="stat-value">30</div>
+            <div className="stat-value">{stats?.noPart ?? 0}</div>
             <div className="stat-desc">lorem ipsum dolor etec</div>
           </div>
           <div className="stat">
             <div className="stat-title">Total Audio Flags</div>
-            <div className="stat-value">{faker.random.numeric(2)}</div>
+            <div className="stat-value">{stats?.a ?? 0}</div>
             <div className="stat-desc">lorem ipsum dolor etec</div>
           </div>
           <div className="stat">
             <div className="stat-title">Total Video Flags</div>
-            <div className="stat-value">{faker.random.numeric(2)}</div>
+            <div className="stat-value">{stats?.v ?? 0}</div>
             <div className="stat-desc">lorem ipsum dolor etec</div>
           </div>
           <div className="stat">
             <div className="stat-title">Total Keys Flags</div>
-            <div className="stat-value">{faker.random.numeric(2)}</div>
+            <div className="stat-value">{stats?.k ?? 0}</div>
             <div className="stat-desc">lorem ipsum dolor etec</div>
           </div>
           <div className="stat">
             <div className="stat-title">Total Browser Flags</div>
-            <div className="stat-value">{faker.random.numeric(2)}</div>
+            <div className="stat-value">{stats?.b ?? 0}</div>
             <div className="stat-desc">lorem ipsum dolor etec</div>
           </div>
           <div className="stat">
             <div className="stat-title">Total Flags</div>
-            <div className="stat-value">{faker.random.numeric(3)}</div>
+            <div className="stat-value">{stats?.t ?? 0}</div>
             <div className="stat-desc">lorem ipsum dolor etec</div>
           </div>
         </div>
       </div>
-      <div className="mb-5">
-        <Line data={GRAPH_DATA} />
-      </div>
+      <div className="mb-5">{!isLoading && <Line data={graphData} />}</div>
       <div>
         <div className="overflow-x-auto mt-4">
           <table className="table w-full">
@@ -166,19 +170,19 @@ const Monitoring = () => {
               </tr>
             </thead>
             <tbody>
-              {participants().map((part) => (
+              {participants.map((p) => (
                 <tr
                   className="cursor-pointer"
-                  onClick={() => navigate(`/monitoring/${part.id}`)}
+                  onClick={() => navigate(`/monitoring/${p.id}`)}
                 >
-                  <th>{part.id}</th>
-                  <td>{part.email}</td>
-                  <td>{moment(part.time).format("LTS")}</td>
-                  <td>{part.audio}</td>
-                  <td>{part.video}</td>
-                  <td>{part.keys}</td>
-                  <td>{part.browser}</td>
-                  <td>{part.total}</td>
+                  <th>{p.id}</th>
+                  <td>{p.email}</td>
+                  <td>{moment(p.startedAt).format("LTS")}</td>
+                  <td>{p.a}</td>
+                  <td>{p.v}</td>
+                  <td>{p.k}</td>
+                  <td>{p.b}</td>
+                  <td>{p.a + p.v + p.k + p.b}</td>
                 </tr>
               ))}
             </tbody>

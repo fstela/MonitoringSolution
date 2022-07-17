@@ -17,7 +17,19 @@ class DataProcessor:
                 "sessionParticipantId": {"type": "integer"},
                 "video": {"type": "string"},
                 "keys": {"type": "array", "items": {"type": "string"}},
-                "browser": {"type": "array", "items": {"type": "string"}},
+                "browser": {
+                    "type": "object",
+                            "properties": {
+                                "allowed_urls": {
+                                    "type": "array",
+                                    "items": {"type": "string"}
+                                },
+                                "tracked_urls": {
+                                    "type": "array",
+                                    "items": {"type": "string"}
+                                }
+                            }
+                },
             }
         }
 

@@ -4,6 +4,7 @@ import imgProf from "@assets/img/prof.png";
 import imgStud from "@assets/img/stud.png";
 import SessionService from "@src/api/SessionService";
 import { createClient } from "@src/api/ApiService";
+import AuthService from "@src/api/AuthService";
 
 const WINDOW_MONITORING_ID_KEY = "monitoring_window_id";
 
@@ -111,6 +112,9 @@ const Authentication = () => {
 
 const TeacherForm: React.FC = () => {
   const [token, setToken] = useState<string | undefined>(undefined);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<undefined | string>();
+
   const handleCreateSession = () => {
     chrome.tabs.create({
       active: true,
@@ -119,18 +123,47 @@ const TeacherForm: React.FC = () => {
       )}?page=create`,
     });
   };
+
   const handleConnect = () => {
-    if (token) {
-      chrome.storage.local.set({ token }).then(() => {
-        console.log(token);
-        chrome.tabs.create({
-          active: true,
-          url: `${chrome.runtime.getURL(
-            "src/pages/options/index.html"
-          )}?page=view`,
-        });
-      });
+    if (!token) {
+      setError("Invalid token");
+      return;
     }
+
+    const clinet = createClient(token);
+    const service = new AuthService(clinet);
+
+    service
+      .auth({ token, type: "teacher" })
+      .then(
+        (response) => {
+          if (response.status === 200) {
+            chrome.storage.local.set({ token: response.data.jwt }).then(() => {
+              console.log(token);
+              chrome.tabs.create({
+                active: true,
+                url: `${chrome.runtime.getURL(
+                  "src/pages/options/index.html"
+                )}?page=view`,
+              });
+            });
+          } else {
+            console.log(response);
+            setError("Invalid token");
+            setIsLoading(false);
+          }
+        },
+        (err) => {
+          console.log(err);
+          setError("Invalid token");
+          setIsLoading(false);
+        }
+      )
+      .catch((err) => {
+        console.log(err);
+        setError("Invalid token");
+        setIsLoading(false);
+      });
   };
   return (
     <>
@@ -144,12 +177,13 @@ const TeacherForm: React.FC = () => {
               onChange={(e) => setToken(e.target.value)}
             />
             <button
-              className="btn btn-active btn-primary"
+              className={`btn btn-active btn-primary ${isLoading && "loading"}`}
               onClick={handleConnect}
             >
               Connect
             </button>
           </div>
+          {error && <p className="text-red-500">{error}</p>}
         </div>
         <div className="divider">OR</div>
       </div>
@@ -192,14 +226,14 @@ const StudentForm: React.FC<{
     setIsLoading(true);
 
     const clinet = createClient(token);
-    const service = new SessionService(clinet);
+    const service = new AuthService(clinet);
 
     service
-      .getSessionParticipant()
+      .auth({ token, type: "student" })
       .then(
         (response) => {
           if (response.status === 200) {
-            handleConnect();
+            handleConnect(response.data.jwt);
           } else {
             console.log(response);
             setError("Invalid token");
@@ -219,7 +253,7 @@ const StudentForm: React.FC<{
       });
   };
 
-  const handleConnect = () => {
+  const handleConnect = (jwt: string) => {
     // if port is not availabile
     if (port === undefined) {
       setError("Error, please restart your browser");
@@ -229,7 +263,7 @@ const StudentForm: React.FC<{
 
     var url = chrome.runtime.getURL("src/pages/options/index.html");
 
-    chrome.storage.local.set({ token }).then(() => {
+    chrome.storage.local.set({ token: jwt }).then(() => {
       chrome.windows.create(
         {
           url: `${url}?page=recording`,

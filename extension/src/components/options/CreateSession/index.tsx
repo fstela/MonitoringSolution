@@ -1,18 +1,18 @@
-import React, { useContext, useState } from "react";
+import React, { useState } from "react";
 import DateTimePicker from "react-datetime-picker";
 import Joi from "joi";
 import { getUnixTime } from "date-fns";
 import SessionService from "@src/api/SessionService";
 import { createClient } from "@src/api/ApiService";
 import toast from "react-hot-toast";
-import { VIEW_SESSION_MONITORING } from "@src/pages/options/views";
 import { useNavigate } from "react-router-dom";
+import { subMinutes} from "date-fns"
 
 const CreateSessionSchema = Joi.object({
   title: Joi.string().min(2).max(100).required(),
   duration: Joi.number().integer().min(5).max(200).required(),
-  startDate: Joi.date().greater("now").less(Joi.ref("endDate")).required(),
-  endDate: Joi.date().greater("now").required(),
+  startDate: Joi.date().greater(subMinutes(new Date(), 1)).required(),
+  endDate: Joi.date().greater(Joi.ref("startDate")).required(),
 });
 
 const CreateSession: React.FC = () => {
@@ -43,6 +43,7 @@ const CreateSession: React.FC = () => {
     if (validationResult.error) {
       setErrorMessage(validationResult.error.message);
       setInProgress(false);
+      return;
     }
 
     service
@@ -54,7 +55,7 @@ const CreateSession: React.FC = () => {
       })
       .then(
         (response) => {
-          setSessionToken(response.data.teacherToken);
+          setSessionToken(response.data.jwt);
         },
         (err) => {
           console.log(err);

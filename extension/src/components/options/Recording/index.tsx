@@ -23,7 +23,7 @@ const Recording: React.FC = () => {
     undefined | ReturnType<typeof setInterval>
   >(undefined);
   const [error, setError] = useState<undefined | string>(undefined);
-  const [port, setPort] = useState<undefined | chrome.runtime.Port>(undefined);
+  // const [port, setPort] = useState<undefined | chrome.runtime.Port>(undefined);
   const [step, setStep] = useState<
     "initial_message" | "access" | "monitoring" | "end"
   >("initial_message");
@@ -63,22 +63,12 @@ const Recording: React.FC = () => {
   };
 
   const connectToPort = () => {
-    const portConn = chrome.runtime.connect({ name: "monitoring" });
-    portConn.onDisconnect.addListener(connectToPort);
-    portConn.onMessage.addListener((msg) => {
-      console.log("received", msg, "from bg");
-    });
-    setPort(portConn);
+    return chrome.runtime.connect({ name: "monitoring" });
   };
 
   const initRecording = (stream: MediaStream) => {
     if (!stream) {
       console.log("No media stream");
-      return;
-    }
-
-    if (!port) {
-      console.log("No extension port");
       return;
     }
 
@@ -100,7 +90,7 @@ const Recording: React.FC = () => {
     setIsStarted(true);
     registerChunckingTimer(rec);
 
-    port.postMessage({
+    connectToPort().postMessage({
       action: "START_MONITORING",
       token,
     });
@@ -160,13 +150,10 @@ const Recording: React.FC = () => {
 
   const pushData = (ev: BlobEvent) => {
     console.log(ev);
-    if (!port) {
-      console.log("No port");
-      return;
-    }
+
     const blob = new Blob([ev.data], { type: mimeType });
     blobToDataURL(blob).then((url) => {
-      port.postMessage({
+      connectToPort().postMessage({
         action: "PUSH_MONITORING_FRAME",
         videoData: url,
       });

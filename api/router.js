@@ -3,6 +3,12 @@ const sessionController = require("./controllers/sessionController");
 const sessionParticipantController = require("./controllers/sessionParticipantController");
 const sessionParticipantMonitoringController = require("./controllers/sessionParticipantMonitoringController");
 const router = require("express").Router();
+const authController = require("./controllers/auth")
+
+/**
+ * JWT Auth
+ */
+router.post("/auth", authController.auth)
 
 /**
  * Teacher routes --------------------------------------------
@@ -36,7 +42,6 @@ router.delete(
 
 /**
  * Get monitoring data of student
- * @todo
  */
 router.get(
   "/sessions/monitoring/participants/:id",
@@ -45,13 +50,16 @@ router.get(
 
 /**
  * Get general monitoring data for session
- * @todo
  */
 router.get(
   "/sessions/monitoring/participants",
-  sessionParticipantMonitoringController.getParticipantMonitoring
+  sessionParticipantMonitoringController.getSessionMonitoring
 );
 
+/**
+ * Update allowed urls
+ */
+router.post("/sessions/allowed-urls", sessionController.updateAllowedUrls)
 
 
 /**

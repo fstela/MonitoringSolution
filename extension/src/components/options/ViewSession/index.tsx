@@ -17,7 +17,7 @@ const SessionMonitoring: React.FC = () => {
   const navigate = useNavigate();
   useEffect(() => {
     chrome.storage.local.get(["token"], (items) => {
-      console.log("aaa", items);
+
       if (items.token) {
         const client = createClient(items.token);
         const service = new SessionService(client);
@@ -194,14 +194,13 @@ const SessionMonitoring: React.FC = () => {
             </div>
           </div>
         </div>
-        <WebsitesModal
-          isHidden={!showAllowedWebsiteModal}
-          cancel={() => setShowAllowedWebsiteModal(false)}
-          submit={(data) => {
-            setShowAllowedWebsiteModal(false);
-            console.log(data);
-          }}
-        />
+        {service && (
+          <WebsitesModal
+            service={service}
+            isHidden={!showAllowedWebsiteModal}
+            cancel={() => setShowAllowedWebsiteModal(false)}
+          />
+        )}
       </div>
     </div>
   );
@@ -210,13 +209,15 @@ const SessionMonitoring: React.FC = () => {
 const WebsitesModal: React.FC<{
   isHidden: boolean;
   cancel: () => void;
-  submit: (data: string[]) => void;
-}> = ({ isHidden, cancel, submit }) => {
+  service: SessionService;
+}> = ({ isHidden, cancel, service }) => {
   const [data, setData] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
-    setData(["test.ro"]);
-    setIsLoading(false);
+    service.getSessionInfo().then((data) => {
+      setData(data.data.allowedUrls ?? []);
+      setIsLoading(false);
+    });
   }, [isHidden]);
 
   const addWebsite = () => {
@@ -227,6 +228,20 @@ const WebsitesModal: React.FC<{
         setData(values);
         ref.current.value = "";
       }
+    }
+  };
+
+  const submit = () => {
+    if (data) {
+      service
+        .updateAllowedWebsited(data)
+        .then(() => {
+          toast.success("Websites list updated");
+          cancel();
+        })
+        .catch(() => {
+          toast.error("Failed to update the websites list");
+        });
     }
   };
 
@@ -292,14 +307,7 @@ const WebsitesModal: React.FC<{
           <a href="#" className="btn btn-ghost" onClick={cancel}>
             Cancel
           </a>
-          <button
-            className="btn btn-primary"
-            onClick={() => {
-              submit(data);
-              toast.success("Websites list updated");
-            }}
-            disabled={false}
-          >
+          <button className="btn btn-primary" onClick={submit} disabled={false}>
             Save
           </button>
         </div>
