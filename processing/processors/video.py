@@ -22,11 +22,11 @@ class VideoProcessor:
                 maskleft, leftPos, leftColor, leftEyeImage, croppedEyeLeft = m.EyeTracking(
                     frame, grayFrame, LeftEyePoint)
                 if pos != "Center" or leftPos != "Center":
-                    return False
+                    return True
             else:
-                return False
+                return True
             key = cv.waitKey(1)
             if key == ord('q'):
                 break
         camera.release()
-        return True
+        return False

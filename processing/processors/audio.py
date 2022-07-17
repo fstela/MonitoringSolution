@@ -17,13 +17,13 @@ class AudioProcessor:
         try:
             text = recognizer.recognize_google(audio, show_all=True)
             if len(text) == 0:
-                return True
+                return False
         except speech_recognition.UnknownValueError():
             recognizer = speech_recognition.Recognizer()
         finally:
             os.remove(audio_file_temp_path)
 
-        return False
+        return True
 
     def extract_audio(self, video_file_path, output_path):
         subprocess.run(
