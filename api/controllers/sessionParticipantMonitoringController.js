@@ -23,47 +23,36 @@ const getParticipantMonitoring = async (req, res) => {
     return;
   }
 
-  const sessionParticipantMonitorings =
-    await SessionParticipantMonitoring.findAll({
-      where: { sessionParticipant: sessionParticipant.id },
-    });
+  const data = await db.sequelize.query(
+    `select sm.id, UNIX_TIMESTAMP(sm.createdAt) as date,
+      sm.videoFilePath as url,
+      sm.isVideoFlagged as v,
+      sm.isAudioFlagged as a,
+      sm.isKeysFlagged as k,
+      sm.isBrowserFlagged as b, browserData, loggedKeys from sessionParticipantMonitorings sm
+    join sessionParticipants sp on sp.id = sm.session_participant_id
+    where sp.id = ${sessionParticipant.id} order by sm.createdAt`,
+    { raw: true, type: "SELECT" }
+  );
 
-  if (!sessionParticipantMonitorings) {
-    res.status(200).send([]);
-    return;
-  }
-  const result = {
-    recordings: [],
-    keys: [],
-    browser: [],
-  };
-  sessionParticipantMonitorings.forEeach((spm) => {
-    result.recordings.push({
-      url: spm.videoFilePath,
-      date: spm.createdAt,
-      id: spm.id,
-      a: spm.isAudioFlagged,
-      v: spm.isVideoFlagged,
-    });
-    result.keys.push({
-      date: spm.createdAt,
-      text: "xx",
-      flagged: spm.isKeysFlagged,
-    });
-    result.browser.push({
-      date: spm.createdAt,
-      text: "cc",
-      flagged: spm.isBrowserFlagged,
-    });
+  data.map(row => {
+    try {
+      row.browserData = JSON.parse(row.browserData)
+    } catch(e) {
+      console.log("failed to parse json of browserData, ", e)
+      row.browserData = undefined
+    }
+    try {
+      row.loggedKeys = JSON.parse(row.loggedKeys)
+    } catch(e) {
+      console.log("failed to parse json of loggedKeys, ", e)
+      row.loggedKeys = undefined
+    }
   });
 
-  res.status(200).send(result);
-};
 
-const monitoringDataSchema = Joi.object({
-  keys: Joi.array().items(Joi.string()),
-  browser: Joi.array().items(Joi.string()),
-});
+  res.status(200).send(data);
+};
 
 const getSessionMonitoring = async (req, res) => {
   let token = extractTokenFromHeader(req);
@@ -93,10 +82,10 @@ const getSessionMonitoring = async (req, res) => {
     `select sp.id as id,
       sp.email as email,
       UNIX_TIMESTAMP(MIN(sm.createdAt)) as startedTime,
-      SUM(sm.isVideoFlagged) as v,
-      SUM(sm.isAudioFlagged) as a,
-      SUM(sm.isKeysFlagged) as k,
-      SUM(sm.isBrowserFlagged) as b
+      CAST(SUM(sm.isVideoFlagged) AS int) as v,
+      CAST(SUM(sm.isAudioFlagged) AS int) as a,
+      CAST(SUM(sm.isKeysFlagged) AS int) as k,
+      CAST(SUM(sm.isBrowserFlagged) AS int) as b
     from sessionParticipantMonitorings sm
     join sessionParticipants sp on sp.id = sm.session_participant_id
     join sessions s on sp.session_id = s.id
@@ -113,9 +102,17 @@ const getSessionMonitoring = async (req, res) => {
   res.status(200).send(results);
 };
 
+
+const monitoringDataSchema = Joi.object({
+  keys: Joi.alternatives().try(Joi.array().items(Joi.string()), Joi.string()).optional(),
+  browser: Joi.alternatives().try(Joi.array().items(Joi.string()), Joi.string()).optional(),
+});
+
+
 const postMonitoringData = async (req, res) => {
   const data = req.body;
   const validation = monitoringDataSchema.validate(data);
+  
   if (validation.error) {
     res.status(401).send(validation.error);
     return;
@@ -153,7 +150,10 @@ const postMonitoringData = async (req, res) => {
 
   const sv = new ProcessingQueue();
   const queue = await sv.getInstance();
-
+  data.browser = data.browser ?? [];
+  data.keys = data.keys ?? [];
+  !Array.isArray(data.browser) && (data.browser = [data.browser]);
+  !Array.isArray(data.keys) && (data.keys = [data.keys]);
   data.browser = {
     tracked_urls: data.browser,
     allowed_urls: [],
@@ -161,7 +161,7 @@ const postMonitoringData = async (req, res) => {
 
   if (sessionParticipant.session && sessionParticipant.session.allowedUrls) {
     try {
-      data.allowed_urls = JSON.parse(sessionParticipant.session.allowedUrls);
+      data.browser.allowed_urls = JSON.parse(sessionParticipant.session.allowedUrls);
     } catch {
       console.log("Failed to parse allowed urls");
     }
@@ -185,10 +185,7 @@ const postMonitoringData = async (req, res) => {
 const monitoringResultSchema = Joi.object({
   data: Joi.object({
     keys: Joi.array().items(Joi.string()).required(),
-    browser: Joi.object({
-      allowed_urls: Joi.array().items(Joi.string()).required(),
-      tracked_urls: Joi.array().items(Joi.string()).required(),
-    }),
+    browser: Joi.array().items(Joi.string()).required(),
     video: Joi.string().required(),
     sessionParticipantId: Joi.number().required(),
   }),
@@ -221,12 +218,8 @@ const saveMonitoringProcessingResult = async (message) => {
 
   const data = {
     videoFilePath: message.data.video,
-    loggedKeys: Buffer.from(JSON.stringify(message.data.keys)).toString(
-      "base64"
-    ),
-    browserData: Buffer.from(JSON.stringify(message.data.browser)).toString(
-      "base64"
-    ),
+    loggedKeys: JSON.stringify(message.data.keys),
+    browserData: JSON.stringify(message.data.browser),
     isAudioFlagged: message.results.audio,
     isVideoFlagged: message.results.video,
     isBrowserFlagged: message.results.browser,

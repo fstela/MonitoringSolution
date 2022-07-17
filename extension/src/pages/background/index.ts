@@ -132,11 +132,11 @@ chrome.runtime.onMessage.addListener((message) => {
   }
 });
 
-const recordBrowserDataInState = (data: Object) => {
+const recordBrowserDataInState = (data: string) => {
   EXT_STATE.recordedBrowserData.push(data);
 };
 
-const recordKeysDataInState = (data: Object) => {
+const recordKeysDataInState = (data: string) => {
   EXT_STATE.recordedKeyData.push(data);
 };
 
@@ -153,6 +153,8 @@ const pushMonitoringData = (videoData: any) => {
     keys: EXT_STATE.recordedKeyData,
   };
 
+  EXT_STATE.recordedBrowserData = [];
+  EXT_STATE.recordedKeyData = []  
 
   // base64 -> blob
   fetch(videoData)
@@ -178,16 +180,12 @@ const saveData = (data: {videoBlob: Blob, browser: string[], keys: string[]}) =>
   data.browser.forEach((data) => {
     formdata.append("browser", data);
   });
-  if(data.browser.length == 0 ) {
-    formdata.append("browser", '');
-  }
+  
 
   data.keys.forEach((data) => {
     formdata.append("keys", data);
   });
-  if(data.keys.length == 0 ) {
-    formdata.append("keys", '');
-  }
+
 
   const errorMessage = "Failed to send data to the server";
 

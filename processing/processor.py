@@ -43,6 +43,7 @@ class DataProcessor:
             "keys": self.__process_keys(data["keys"]),
             "browser": self.__process_browser(data["browser"])
         }
+        data["browser"] = data["browser"]["tracked_urls"]
         self.__rm_tmp_path(tmp_file_path)
         return {"data": data, "results": processing_result}
 

@@ -59,7 +59,7 @@ export type SessionMonitoringGraphPoint = {
 export type SessionMonitoringParticipant = {
     id: number,
     email: string,
-    startedAt: number,
+    startedTime: number,
     a: number,
     v: number,
     b: number,
@@ -67,27 +67,13 @@ export type SessionMonitoringParticipant = {
 }
 
 export type SessionParticipantMonitoring = {
-    recordings: SessionParticipantRecording[];
-    keys: SessionParticipantKey[];
-    browser: SessionParticipantBrowser[]
-}
-
-export type SessionParticipantRecording = {
-    url: string;
-    date: number;
-    id: string;
-    a: boolean;
-    v: boolean;
-}
-
-export type SessionParticipantKey = {
-    date: number;
-    text: string;
-    flagged: boolean;
-}
-
-export type SessionParticipantBrowser = {
-    date: number;
-    text: string;
-    flagged: boolean;
+    id: number,
+    a: number,
+    v: number,
+    b: number,
+    k: number,
+    loggedKeys: string[],
+    browserData: string[],
+    url: string,
+    date: number
 }

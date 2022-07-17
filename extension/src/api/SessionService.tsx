@@ -37,6 +37,6 @@ export default class SessionService extends BaseApi {
     return this.client.get<SessionMonitoringData>("sessions/monitoring/participants")
   }
   public getParticipantMonitoringData = (id: number | string) => {
-    return this.client.get<SessionParticipantMonitoring>("/sessions/monitoring/participants/" + id);
+    return this.client.get<SessionParticipantMonitoring[]>("/sessions/monitoring/participants/" + id);
   }
 }

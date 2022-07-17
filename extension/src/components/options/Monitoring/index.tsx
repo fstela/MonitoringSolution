@@ -34,23 +34,24 @@ export function rand(min: number, max: number, seed: number) {
   return min + (seed / 233280) * (max - min);
 }
 
-const GRAPH_DATA = {
-  labels: [] as string[],
-  datasets: [
-    {
-      label: "Falgged participants",
-      data: [] as number[],
-      borderColor: "red",
-      backgroundColor: transparentize(CHART_COLORS.red, 0.5),
-      pointStyle: "circle",
-      pointRadius: 10,
-      pointHoverRadius: 15,
-    },
-  ],
-};
-
 const Monitoring = () => {
-  const [graphData, setGrapData] = useState(GRAPH_DATA);
+  const GRAPH_DATA = {
+    labels: [] as string[],
+    datasets: [
+      {
+        label: "Falgged participants",
+        data: [] as number[],
+        borderColor: "red",
+        backgroundColor: transparentize(CHART_COLORS.red, 0.5),
+        pointStyle: "circle",
+        pointRadius: 10,
+        pointHoverRadius: 15,
+      },
+    ],
+  };
+  const [graphData, setGrapData] = useState<typeof GRAPH_DATA | undefined>(
+    undefined
+  );
   const [participants, setParticipants] = useState<
     SessionMonitoringParticipant[]
   >([]);
@@ -61,6 +62,7 @@ const Monitoring = () => {
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     document.title = "Session Monitoring | Overview";
+    setIsLoading(true);
     let timer = undefined as any;
     chrome.storage.local.get(["token"], (items) => {
       if (items.token) {
@@ -84,10 +86,10 @@ const Monitoring = () => {
 
   const loadData = (service: SessionService) => {
     service.getSessionMonitoringData().then((response) => {
-      const graph = GRAPH_DATA;
+      const graph = { ...GRAPH_DATA };
       const stats = { noPart: 0, a: 0, v: 0, k: 0, b: 0, t: 0 };
       response.data.graph.forEach((gd) => {
-        graph.labels.push(moment(gd.date).format("LTS"));
+        graph.labels.push(moment.unix(gd.date).format("LTS"));
         graph.datasets[0].data.push(gd.value);
       });
       response.data.participants.forEach((p) => {
@@ -153,7 +155,7 @@ const Monitoring = () => {
           </div>
         </div>
       </div>
-      <div className="mb-5">{!isLoading && <Line data={graphData} />}</div>
+      <div className="mb-5">{!isLoading && graphData && <Line data={graphData} />}</div>
       <div>
         <div className="overflow-x-auto mt-4">
           <table className="table w-full">
@@ -177,7 +179,7 @@ const Monitoring = () => {
                 >
                   <th>{p.id}</th>
                   <td>{p.email}</td>
-                  <td>{moment(p.startedAt).format("LTS")}</td>
+                  <td>{moment.unix(p.startedTime).format("LTS")}</td>
                   <td>{p.a}</td>
                   <td>{p.v}</td>
                   <td>{p.k}</td>

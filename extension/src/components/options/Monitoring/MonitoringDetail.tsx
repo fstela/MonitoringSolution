@@ -2,13 +2,13 @@ import { Chart as ChartJS, registerables } from "chart.js";
 import { Bar } from "react-chartjs-2";
 ChartJS.register(...registerables);
 import { useNavigate, useParams } from "react-router-dom";
-import { faker } from "@faker-js/faker";
 import { useEffect, useState } from "react";
 import moment from "moment";
 import colorLib from "@kurkle/color";
 import { createClient } from "@src/api/ApiService";
 import SessionService from "@src/api/SessionService";
 import toast from "react-hot-toast";
+import { SessionParticipantMonitoring } from "@src/api/types";
 
 export function transparentize(value: string, opacity: number) {
   var alpha = opacity === undefined ? 0.5 : 1 - opacity;
@@ -28,6 +28,7 @@ export const CHART_COLORS = {
 const MonitoringDetail = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(1);
+  const [data, setData] = useState<SessionParticipantMonitoring[]>([]);
   const { id } = useParams();
   if (!id) {
     throw Error("Invalid id");
@@ -56,22 +57,14 @@ const MonitoringDetail = () => {
   }, []);
 
   const loadData = (service: SessionService) => {
-    service.getParticipantMonitoringData(id).then(response => {
-      const labels = [] as string[];
-      const a = [] as number[];
-      const v = [] as number[];
-      const k = [] as number[];
-      const b = [] as number[];
-      response.data.recordings.forEach(r => {
-        labels.push(moment(r.date).format("LTS"))
-        a.push(r.a)
-      })
-    })
+    service.getParticipantMonitoringData(id).then((response) => {
+      setData(response.data);
+    });
   };
 
-  const getData = (labels: string[], a: number[], v: number[], k: number[], b: number[]) => {
+  const getData = () => {
     let chartData = {
-      labels: labels,
+      labels: data.map((d) => moment.unix(d.date).format("LTS")),
       scales: {
         x: {
           stacked: true,
@@ -83,25 +76,25 @@ const MonitoringDetail = () => {
       datasets: [
         {
           label: "Audio Flags",
-          data: a,
+          data: data.map((d) => d.a),
           borderColor: "blue",
           backgroundColor: transparentize(CHART_COLORS.blue, 0.5),
         },
         {
           label: "Video Flags",
-          data: v,
+          data: data.map((d) => d.v),
           borderColor: "orange",
           backgroundColor: transparentize(CHART_COLORS.orange, 0.5),
         },
         {
           label: "Keys Flags",
-          data: k,
+          data: data.map((d) => d.k),
           borderColor: "green",
           backgroundColor: transparentize(CHART_COLORS.green, 0.5),
         },
         {
           label: "Browser Flags",
-          data: b,
+          data: data.map((d) => d.b),
           borderColor: "purple",
           backgroundColor: transparentize(CHART_COLORS.purple, 0.5),
         },
@@ -130,31 +123,41 @@ const MonitoringDetail = () => {
               <div className="stats shadow">
                 <div className="stat">
                   <div className="stat-title">Total Audio Flags</div>
-                  <div className="stat-value">{faker.random.numeric()}</div>
+                  <div className="stat-value">
+                    {data.reduce((p, c) => p + c.a, 0)}
+                  </div>
                   <div className="stat-desc">lorem ipsum dolor etec</div>
                 </div>
                 <div className="stat">
                   <div className="stat-title">Total Video Flags</div>
-                  <div className="stat-value">{faker.random.numeric()}</div>
+                  <div className="stat-value">
+                    {data.reduce((p, c) => p + c.v, 0)}
+                  </div>
                   <div className="stat-desc">lorem ipsum dolor etec</div>
                 </div>
               </div>
               <div className="stats shadow mt-4">
                 <div className="stat">
                   <div className="stat-title">Total Keys Flags</div>
-                  <div className="stat-value">{faker.random.numeric()}</div>
+                  <div className="stat-value">
+                    {data.reduce((p, c) => p + c.k, 0)}
+                  </div>
                   <div className="stat-desc">lorem ipsum dolor etec</div>
                 </div>
                 <div className="stat">
                   <div className="stat-title">Total Browser Flags</div>
-                  <div className="stat-value">{faker.random.numeric()}</div>
+                  <div className="stat-value">
+                    {data.reduce((p, c) => p + c.b, 0)}
+                  </div>
                   <div className="stat-desc">lorem ipsum dolor etec</div>
                 </div>
               </div>
               <div className="stats shadow mt-4">
                 <div className="stat">
                   <div className="stat-title">Total Flags</div>
-                  <div className="stat-value">{faker.random.numeric(2)}</div>
+                  <div className="stat-value">
+                    {data.reduce((p, c) => p + c.a + c.v + c.k + c.b, 0)}
+                  </div>
                   <div className="stat-desc">lorem ipsum dolor etec</div>
                 </div>
               </div>
@@ -185,9 +188,9 @@ const MonitoringDetail = () => {
               </a>
             </div>
             <div>
-              {activeTab === 1 && <Recordings />}
-              {activeTab === 2 && <Keys />}
-              {activeTab === 3 && <Browser />}
+              {activeTab === 1 && <Recordings data={data} />}
+              {activeTab === 2 && <Keys data={data} />}
+              {activeTab === 3 && <Browser data={data} />}
             </div>
           </div>
         </div>
@@ -196,48 +199,69 @@ const MonitoringDetail = () => {
   );
 };
 
-const Recordings = () => {
-  const getData = () => {
-    const data = [];
+const Recordings: React.FC<{ data: SessionParticipantMonitoring[] }> = ({
+  data,
+}) => {
+  const [src, setSrc] = useState<{ url: string; title: string } | undefined>(
+    undefined
+  );
+  return (
+    <>
+      <div className="mt-5 overflow-y-scroll h-screen">
+        {data.map((data, index) => (
+          <div
+            className="indicator w-full mt-3 "
+            onClick={() => {
+              setSrc({
+                url: `http://localhost:9060/monitoring/${data.url}`,
+                title: ` Frame ${index} - ${
+                  data.url.split("/")[1] ?? ""
+                } (${moment.unix(data.date).format("LTS")})`,
+              });
+            }}
+          >
+            {(data.a >= 1 || data.v >= 1) && (
+              <span className="indicator-item indicator-start badge badge-secondary ml-10">
+                {data.a ? "Audio" : "Video"}
+              </span>
+            )}
+            <div className="card w-full bg-base-100 hover:bg-base-300 shadow-sm cursor-pointer  ">
+              <div className="card-body p-5">
+                <p>{`(${moment.unix(data.date).format("LTS")})`}</p>
+                <p>
+                  Frame {index} - {data.url.split("/")[1] ?? ""}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      {src && (
+        <ViewVideoModal
+          src={src.url}
+          title={src.title}
+          cancel={() => setSrc(undefined)}
+        />
+      )}
+    </>
+  );
+};
 
-    for (let i = 1; i < 50; i++) {
-      const gen = {
-        id: i,
-        name: `${faker.datatype.uuid()}.webm`,
-        flagged: faker.datatype.boolean(),
-        time: faker.date.between(
-          moment().toDate(),
-          moment().add(1, "h").toDate()
-        ),
-      };
-      data.push(gen);
-    }
-
-    return data;
-  };
+const Keys: React.FC<{ data: SessionParticipantMonitoring[] }> = ({ data }) => {
   return (
     <div className="mt-5 overflow-y-scroll h-screen">
-      {getData().map((data) => (
-        <div
-          className="indicator w-full mt-3 "
-          onClick={() => {
-            window
-              .open(
-                "https://dl8.webmfiles.org/big-buck-bunny_trailer.webm",
-                "_blank"
-              )
-              ?.focus();
-          }}
-        >
-          {data.flagged && (
+      {data.map((data) => (
+        <div className="indicator w-full mt-3 ">
+          {data.k >= 1 && (
             <span className="indicator-item indicator-start badge badge-secondary ml-3"></span>
           )}
-          <div className="card w-full bg-base-100 hover:bg-base-300 shadow-sm cursor-pointer  ">
+          <div className="card w-full bg-base-100 hover:bg-base-300 shadow-sm ">
             <div className="card-body p-5">
-              <p>{`(${moment(data.time).format("LTS")})`}</p>
-              <p>
-                Frame {data.id} - {data.name}
-              </p>
+              <p>{`(${moment.unix(data.date).format("LTS")})`}</p>
+              {data.loggedKeys.length > 0 && (
+                <kbd className="kbd kbd-sm">{data.loggedKeys.join(",")}</kbd>
+              )}
+              {data.loggedKeys.length == 0 && <p>no data</p>}
             </div>
           </div>
         </div>
@@ -246,36 +270,30 @@ const Recordings = () => {
   );
 };
 
-const Keys = () => {
-  const getData = () => {
-    const data = [];
-
-    for (let i = 1; i < 50; i++) {
-      const gen = {
-        id: i,
-        data: faker.commerce.productDescription(),
-        flagged: faker.datatype.boolean(),
-        time: faker.date.between(
-          moment().toDate(),
-          moment().add(1, "h").toDate()
-        ),
-      };
-      data.push(gen);
-    }
-
-    return data;
-  };
+const Browser: React.FC<{ data: SessionParticipantMonitoring[] }> = ({
+  data,
+}) => {
   return (
     <div className="mt-5 overflow-y-scroll h-screen">
-      {getData().map((data) => (
+      {data.map((data) => (
         <div className="indicator w-full mt-3 ">
-          {data.flagged && (
+          {data.b >= 1 && (
             <span className="indicator-item indicator-start badge badge-secondary ml-3"></span>
           )}
           <div className="card w-full bg-base-100 hover:bg-base-300 shadow-sm ">
             <div className="card-body p-5">
-              <p>{`(${moment(data.time).format("LTS")})`}</p>
-              <kbd className="kbd kbd-sm">{data.data}</kbd>
+              <p>{`(${moment.unix(data.date).format("LTS")})`}</p>
+              {data.browserData.length == 0 && <p>no data</p>}
+              {data.browserData.map((t) => {
+                return (
+                  <textarea rows={3} className="mb-2 px-2" disabled>
+                    {t
+                      .split("#")
+                      .map((d) => d.replace("_", " - "))
+                      .join(" , ")}
+                  </textarea>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -284,44 +302,27 @@ const Keys = () => {
   );
 };
 
-const Browser = () => {
-  const getData = () => {
-    const data = [];
-
-    for (let i = 1; i < 50; i++) {
-      const gen = {
-        id: i,
-        data: `[${
-          faker.datatype.boolean() ? "OPENED" : "CLOSED"
-        }] ${faker.internet.url()} - ${faker.random.words()}, FOCUS: ${
-          faker.datatype.boolean() ? "true" : "false"
-        }`,
-        flagged: faker.datatype.boolean(),
-        time: faker.date.between(
-          moment().toDate(),
-          moment().add(1, "h").toDate()
-        ),
-      };
-      data.push(gen);
-    }
-
-    return data;
-  };
+const ViewVideoModal: React.FC<{
+  title: string;
+  src: string;
+  cancel: () => void;
+}> = ({ title, cancel, src }) => {
   return (
-    <div className="mt-5 overflow-y-scroll h-screen">
-      {getData().map((data) => (
-        <div className="indicator w-full mt-3 ">
-          {data.flagged && (
-            <span className="indicator-item indicator-start badge badge-secondary ml-3"></span>
-          )}
-          <div className="card w-full bg-base-100 hover:bg-base-300 shadow-sm ">
-            <div className="card-body p-5">
-              <p>{`(${moment(data.time).format("LTS")})`}</p>
-              <kbd className="kbd kbd-sm">{data.data}</kbd>
-            </div>
-          </div>
+    <div className={`modal modal-open`}>
+      <div className="modal-box">
+        <h3 className="font-bold text-lg">View frame</h3>
+        <p>{title}</p>
+        <video controls src={src} autoPlay className="w-full py-3" />
+
+        <div className="modal-action">
+          <a href={src} target="_blank" className="btn btn-ghost">
+            Download
+          </a>
+          <a href="#" className="btn btn-ghost" onClick={cancel}>
+            Cancel
+          </a>
         </div>
-      ))}
+      </div>
     </div>
   );
 };
